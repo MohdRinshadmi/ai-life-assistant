@@ -1,0 +1,35 @@
+{
+  "name": "ai-life-assistant",
+  "version": "1.0.0",
+  "private": true,
+  "description": "AI Life Assistant — Production-grade AI mobile application",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "server:dev": "npm run dev -w apps/server",
+    "server:build": "npm run build -w apps/server",
+    "server:start": "npm run start -w apps/server",
+    "mobile:start": "npm run start -w apps/mobile",
+    "mobile:android": "npm run android -w apps/mobile",
+    "mobile:ios": "npm run ios -w apps/mobile",
+    "shared:build": "npm run build -w packages/shared",
+    "docker:dev": "docker compose -f infrastructure/docker/docker-compose.dev.yml up -d",
+    "docker:down": "docker compose -f infrastructure/docker/docker-compose.dev.yml down",
+    "docker:logs": "docker compose -f infrastructure/docker/docker-compose.dev.yml logs -f",
+    "db:generate": "npm run db:generate -w apps/server",
+    "db:migrate": "npm run db:migrate -w apps/server",
+    "lint": "npm run lint --workspaces --if-present",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "clean": "rm -rf node_modules apps/*/node_modules packages/*/node_modules",
+    "postinstall": "patch-package"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "npm": ">=10.0.0"
+  },
+  "devDependencies": {
+    "patch-package": "^8.0.1"
+  }
+}

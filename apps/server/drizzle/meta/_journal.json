@@ -1,0 +1,27 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1746614400000,
+      "tag": "0001_chat_tables",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1746700800000,
+      "tag": "0002_knowledge_items",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1746787200000,
+      "tag": "0003_tasks",
+      "breakpoints": true
+    }
+  ]
+}
