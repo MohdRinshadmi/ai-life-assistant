@@ -7,14 +7,16 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-  TouchableOpacity,
   Alert,
+  TextInput,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import LinearGradient from 'react-native-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useTheme } from '../../../hooks/useTheme';
-import { Input, Button } from '../../../components/ui/FormElements';
+import { MicOrb } from '../../../components/ui/MicOrb';
+import { PillButton } from '../../../components/ui/PillButton';
 import { authService } from '../services/authService';
 import { AuthStackParamList } from '../../../navigation/AuthNavigator';
 
@@ -27,28 +29,13 @@ export function LoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
-
-  const validate = (): boolean => {
-    const newErrors: typeof errors = {};
-
-    if (!email.trim()) {
-      newErrors.email = 'Email is required';
-    } else if (!/\S+@\S+\.\S+/.test(email)) {
-      newErrors.email = 'Invalid email format';
-    }
-
-    if (!password) {
-      newErrors.password = 'Password is required';
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
+  const [showForm, setShowForm] = useState(false);
 
   const handleLogin = async () => {
-    if (!validate()) return;
-
+    if (!email.trim() || !password) {
+      Alert.alert('Missing fields', 'Email and password are required.');
+      return;
+    }
     setLoading(true);
     try {
       await authService.login({
@@ -59,105 +46,162 @@ export function LoginScreen() {
     } catch (error: any) {
       const message =
         error.response?.data?.error?.message || 'Login failed. Please try again.';
-      Alert.alert('Login Failed', message);
+      Alert.alert('Login failed', message);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.bg }]}>
-      <StatusBar barStyle={theme.dark ? 'light-content' : 'dark-content'} />
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.flex}
-      >
-        <ScrollView
-          contentContainerStyle={styles.scrollContent}
-          keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}
+    <View style={styles.root}>
+      <StatusBar barStyle="light-content" backgroundColor="#000000" />
+
+      {/* Layered violet wash backdrop */}
+      <LinearGradient
+        colors={theme.colors.gradients.backdrop as unknown as string[]}
+        locations={[0, 0.45, 1]}
+        style={StyleSheet.absoluteFill}
+      />
+
+      <SafeAreaView style={styles.flex} edges={['top', 'bottom']}>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          style={styles.flex}
         >
-          {/* Header */}
-          <View style={styles.header}>
-            <Text style={[theme.textStyles.h1, { color: theme.colors.heading }]}>
-              Welcome back
-            </Text>
-            <Text style={[theme.textStyles.body, { color: theme.colors.subtle, marginTop: 8 }]}>
-              Sign in to your AI assistant
-            </Text>
-          </View>
+          <ScrollView
+            contentContainerStyle={styles.scrollContent}
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
+          >
+            {/* Hero — glowing mic */}
+            <View style={styles.hero}>
+              <MicOrb size={92} active={false} />
 
-          {/* Form */}
-          <View style={styles.form}>
-            <Input
-              label="Email"
-              placeholder="you@example.com"
-              value={email}
-              onChangeText={(text) => {
-                setEmail(text);
-                if (errors.email) setErrors((prev) => ({ ...prev, email: undefined }));
-              }}
-              error={errors.email}
-              keyboardType="email-address"
-              textContentType="emailAddress"
-              returnKeyType="next"
-            />
+              {/* "AI Voice Command" pill */}
+              <View style={styles.tagPill}>
+                <View style={[styles.tagDot, { backgroundColor: theme.colors.accent }]} />
+                <Text style={styles.tagText}>AI Voice Command</Text>
+              </View>
 
-            <Input
-              label="Password"
-              placeholder="Your password"
-              value={password}
-              onChangeText={(text) => {
-                setPassword(text);
-                if (errors.password) setErrors((prev) => ({ ...prev, password: undefined }));
-              }}
-              error={errors.password}
-              secureTextEntry
-              textContentType="password"
-              returnKeyType="done"
-              onSubmitEditing={handleLogin}
-            />
-
-            <Button
-              title="Sign In"
-              onPress={handleLogin}
-              loading={loading}
-              style={{ marginTop: 8 }}
-            />
-          </View>
-
-          {/* Footer */}
-          <View style={styles.footer}>
-            <Text style={[theme.textStyles.body, { color: theme.colors.subtle }]}>
-              Don't have an account?{' '}
-            </Text>
-            <TouchableOpacity onPress={() => navigation.navigate('Register')}>
-              <Text style={[theme.textStyles.bodyMedium, { color: theme.colors.primary }]}>
-                Sign Up
+              <Text style={styles.heroTitle}>
+                Effortless{'\n'}control with{'\n'}
+                <Text style={{ color: theme.colors.heading }}>AI Life</Text>
               </Text>
-            </TouchableOpacity>
-          </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
+
+              <Text style={styles.heroSubtitle}>
+                We believe in the power of voice{'\n'}to transform the way you work
+              </Text>
+
+              {/* Carousel dots */}
+              <View style={styles.dots}>
+                {[0, 1, 2].map((i) => (
+                  <View
+                    key={i}
+                    style={[
+                      styles.dot,
+                      i === 1 && { backgroundColor: theme.colors.heading, width: 18 },
+                    ]}
+                  />
+                ))}
+              </View>
+            </View>
+
+            {/* Form (collapses behind buttons until "Sign In" is tapped) */}
+            {showForm && (
+              <View style={styles.form}>
+                <DarkInput
+                  placeholder="Email"
+                  value={email}
+                  onChangeText={setEmail}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  textContentType="emailAddress"
+                />
+                <DarkInput
+                  placeholder="Password"
+                  value={password}
+                  onChangeText={setPassword}
+                  secureTextEntry
+                  textContentType="password"
+                />
+              </View>
+            )}
+
+            {/* Actions */}
+            <View style={styles.actions}>
+              <PillButton
+                title="Sign Up"
+                variant="gradient"
+                onPress={() => navigation.navigate('Register')}
+              />
+              <PillButton
+                title={showForm ? 'Sign In' : 'Sign In with Email'}
+                variant="outline"
+                loading={loading}
+                onPress={() => (showForm ? handleLogin() : setShowForm(true))}
+              />
+            </View>
+          </ScrollView>
+        </KeyboardAvoidingView>
+      </SafeAreaView>
+    </View>
+  );
+}
+
+function DarkInput(props: React.ComponentProps<typeof TextInput>) {
+  const { theme } = useTheme();
+  return (
+    <View style={[styles.inputWrap, { borderColor: theme.colors.border, backgroundColor: theme.colors.surface }]}>
+      <TextInput
+        {...props}
+        placeholderTextColor={theme.colors.subtle}
+        style={[styles.input, { color: theme.colors.heading }]}
+      />
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
+  root: { flex: 1, backgroundColor: '#000000' },
   flex: { flex: 1 },
   scrollContent: {
     flexGrow: 1,
-    justifyContent: 'center',
-    paddingHorizontal: 24,
+    paddingHorizontal: 28,
+    justifyContent: 'space-between',
+    paddingBottom: 24,
   },
-  header: {
-    marginBottom: 40,
-  },
-  form: {},
-  footer: {
+  hero: { alignItems: 'center', paddingTop: 24, gap: 18 },
+  tagPill: {
     flexDirection: 'row',
-    justifyContent: 'center',
-    marginTop: 32,
+    alignItems: 'center',
+    gap: 7,
+    backgroundColor: 'rgba(255,255,255,0.06)',
+    borderColor: 'rgba(255,255,255,0.12)',
+    borderWidth: 1,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 14,
   },
+  tagDot: { width: 8, height: 8, borderRadius: 4 },
+  tagText: { color: '#E8E4F0', fontSize: 12, fontWeight: '500' },
+  heroTitle: {
+    color: '#E8E4F0',
+    fontSize: 38,
+    lineHeight: 44,
+    fontWeight: '700',
+    textAlign: 'center',
+    marginTop: 4,
+  },
+  heroSubtitle: {
+    color: '#9A8AB8',
+    fontSize: 14,
+    textAlign: 'center',
+    lineHeight: 20,
+  },
+  dots: { flexDirection: 'row', gap: 6, marginTop: 6 },
+  dot: { width: 6, height: 6, borderRadius: 3, backgroundColor: '#3A2A52' },
+  form: { gap: 12, marginTop: 24 },
+  inputWrap: { borderWidth: 1, borderRadius: 16, paddingHorizontal: 16, height: 52, justifyContent: 'center' },
+  input: { fontSize: 15, paddingVertical: 0 },
+  actions: { gap: 12, marginTop: 28 },
 });

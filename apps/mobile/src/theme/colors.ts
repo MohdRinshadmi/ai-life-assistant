@@ -1,36 +1,39 @@
 /**
  * Design System — Color Palette
  *
- * HSL-based for easy manipulation (lighten/darken by adjusting L).
- * Dark mode first — most AI apps use dark themes (easier on eyes, premium feel).
+ * Inspired by AI voice interfaces (Syncra-style) — deep blacks, vivid purple
+ * & magenta gradients, soft neon glows. Dark-mode-first; light mode kept as
+ * a graceful fallback.
  */
 
 export const colors = {
   // ── Brand Colors ──────────────────────────────────
+  // Vivid violet — used for primary CTAs, active states, mic glow
   primary: {
-    50: '#EEF2FF',
-    100: '#E0E7FF',
-    200: '#C7D2FE',
-    300: '#A5B4FC',
-    400: '#818CF8',
-    500: '#6366F1', // Main brand color (Indigo)
-    600: '#4F46E5',
-    700: '#4338CA',
-    800: '#3730A3',
-    900: '#312E81',
+    50: '#F5E9FF',
+    100: '#E5C9FF',
+    200: '#CE99FF',
+    300: '#B566FF',
+    400: '#9D33FF',
+    500: '#8B00FF', // Main brand violet
+    600: '#7000D9',
+    700: '#5500A8',
+    800: '#3D0078',
+    900: '#26004A',
   },
 
+  // Hot magenta accent — used for gradient endpoints, highlights
   accent: {
-    50: '#F0FDFA',
-    100: '#CCFBF1',
-    200: '#99F6E4',
-    300: '#5EEAD4',
-    400: '#2DD4BF',
-    500: '#14B8A6', // Teal accent
-    600: '#0D9488',
-    700: '#0F766E',
-    800: '#115E59',
-    900: '#134E4A',
+    50: '#FFE4F2',
+    100: '#FFB8DD',
+    200: '#FF8AC6',
+    300: '#FF5BAE',
+    400: '#FF2E97',
+    500: '#FF008C', // Main accent magenta
+    600: '#D60074',
+    700: '#A8005C',
+    800: '#7A0042',
+    900: '#4D002A',
   },
 
   // ── Semantic Colors ───────────────────────────────
@@ -56,15 +59,16 @@ export const colors = {
   },
 
   // ── Neutral (Dark Theme) ──────────────────────────
+  // Deep blacks with a hint of violet for that AI-voice premium feel
   dark: {
-    bg: '#0F0F14',        // Deepest background
-    surface: '#1A1A24',   // Card/modal backgrounds
-    elevated: '#242435',  // Elevated surfaces
-    border: '#2E2E42',    // Borders
-    muted: '#4A4A6A',     // Disabled/muted text
-    subtle: '#8888AA',    // Subtle text
-    text: '#E4E4F0',      // Primary text
-    heading: '#FFFFFF',   // Headings
+    bg: '#000000',         // Pure black canvas
+    surface: '#0E0816',    // Card / modal — slightly violet-tinted
+    elevated: '#160C24',   // Elevated surfaces (modals, popovers)
+    border: '#241636',     // Hairline borders — violet-tinted
+    muted: '#3A2A52',      // Disabled / muted
+    subtle: '#9A8AB8',     // Subtle text (lavender-grey)
+    text: '#E8E4F0',       // Primary body text
+    heading: '#FFFFFF',    // Headings — pure white
   },
 
   // ── Neutral (Light Theme) ─────────────────────────
@@ -85,13 +89,17 @@ export const colors = {
   transparent: 'transparent',
 
   // ── Gradient Presets ──────────────────────────────
+  // Most gradients are 3-stop violet → magenta for a richer, glossier blend.
   gradients: {
-    primary: ['#6366F1', '#8B5CF6'],     // Indigo → Violet
-    accent: ['#14B8A6', '#06B6D4'],      // Teal → Cyan
-    warm: ['#F59E0B', '#EF4444'],        // Amber → Red
-    cool: ['#3B82F6', '#6366F1'],        // Blue → Indigo
-    dark: ['#1A1A24', '#0F0F14'],        // Surface → BG
-    glass: ['rgba(255,255,255,0.1)', 'rgba(255,255,255,0.05)'],
+    primary: ['#8B00FF', '#FF008C'],                       // Violet → Magenta (CTAs, mic)
+    primarySoft: ['#5500A8', '#A8005C'],                   // Dimmer for borders / outlines
+    micGlow: ['#B566FF', '#FF008C', '#FF2E97'],            // 3-stop for radial mic glow
+    edge: ['#8B00FF', '#FF008C', '#8B00FF'],               // Neon edge frame (listening)
+    surface: ['rgba(139,0,255,0.06)', 'rgba(255,0,140,0.04)'], // Card glass tint
+    button: ['#1A0E2E', '#0E0816'],                        // Dark glossy button fill
+    pillBorder: ['#8B00FF', '#FF008C'],                    // Pill button stroke
+    backdrop: ['#000000', '#0E0816', '#000000'],           // Screen bg with violet middle
+    glass: ['rgba(255,255,255,0.08)', 'rgba(255,255,255,0.02)'],
   },
 } as const;
 

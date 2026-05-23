@@ -9,12 +9,15 @@ import {
   ScrollView,
   TouchableOpacity,
   Alert,
+  TextInput,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import LinearGradient from 'react-native-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useTheme } from '../../../hooks/useTheme';
-import { Input, Button } from '../../../components/ui/FormElements';
+import { PillButton } from '../../../components/ui/PillButton';
+import { MicOrb } from '../../../components/ui/MicOrb';
 import { authService } from '../services/authService';
 import { VALIDATION } from '@ai-life/shared';
 import { AuthStackParamList } from '../../../navigation/AuthNavigator';
@@ -33,33 +36,24 @@ export function RegisterScreen() {
   const [errors, setErrors] = useState<Record<string, string | undefined>>({});
 
   const validate = (): boolean => {
-    const newErrors: Record<string, string> = {};
-
+    const next: Record<string, string> = {};
     if (!displayName.trim() || displayName.trim().length < VALIDATION.DISPLAY_NAME_MIN_LENGTH) {
-      newErrors.displayName = `Name must be at least ${VALIDATION.DISPLAY_NAME_MIN_LENGTH} characters`;
+      next.displayName = `Name must be at least ${VALIDATION.DISPLAY_NAME_MIN_LENGTH} characters`;
     }
-
-    if (!email.trim()) {
-      newErrors.email = 'Email is required';
-    } else if (!/\S+@\S+\.\S+/.test(email)) {
-      newErrors.email = 'Invalid email format';
-    }
+    if (!email.trim()) next.email = 'Email is required';
+    else if (!/\S+@\S+\.\S+/.test(email)) next.email = 'Invalid email format';
 
     if (!password || password.length < VALIDATION.PASSWORD_MIN_LENGTH) {
-      newErrors.password = `Password must be at least ${VALIDATION.PASSWORD_MIN_LENGTH} characters`;
+      next.password = `Password must be at least ${VALIDATION.PASSWORD_MIN_LENGTH} characters`;
     }
+    if (password !== confirmPassword) next.confirmPassword = 'Passwords do not match';
 
-    if (password !== confirmPassword) {
-      newErrors.confirmPassword = 'Passwords do not match';
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    setErrors(next);
+    return Object.keys(next).length === 0;
   };
 
   const handleRegister = async () => {
     if (!validate()) return;
-
     setLoading(true);
     try {
       await authService.register({
@@ -70,127 +64,130 @@ export function RegisterScreen() {
     } catch (error: any) {
       const message =
         error.response?.data?.error?.message || 'Registration failed. Please try again.';
-      Alert.alert('Registration Failed', message);
+      Alert.alert('Registration failed', message);
     } finally {
       setLoading(false);
     }
   };
 
-  const clearError = (field: string) => {
-    if (errors[field]) {
-      setErrors((prev) => ({ ...prev, [field]: undefined }));
-    }
-  };
-
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.bg }]}>
-      <StatusBar barStyle={theme.dark ? 'light-content' : 'dark-content'} />
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.flex}
-      >
-        <ScrollView
-          contentContainerStyle={styles.scrollContent}
-          keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}
+    <View style={styles.root}>
+      <StatusBar barStyle="light-content" backgroundColor="#000000" />
+      <LinearGradient
+        colors={theme.colors.gradients.backdrop as unknown as string[]}
+        locations={[0, 0.45, 1]}
+        style={StyleSheet.absoluteFill}
+      />
+
+      <SafeAreaView style={styles.flex} edges={['top', 'bottom']}>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          style={styles.flex}
         >
-          {/* Header */}
-          <View style={styles.header}>
-            <Text style={[theme.textStyles.h1, { color: theme.colors.heading }]}>
-              Create Account
-            </Text>
-            <Text style={[theme.textStyles.body, { color: theme.colors.subtle, marginTop: 8 }]}>
-              Get started with your AI assistant
-            </Text>
-          </View>
-
-          {/* Form */}
-          <View style={styles.form}>
-            <Input
-              label="Display Name"
-              placeholder="Your name"
-              value={displayName}
-              onChangeText={(text) => { setDisplayName(text); clearError('displayName'); }}
-              error={errors.displayName}
-              textContentType="name"
-              returnKeyType="next"
-            />
-
-            <Input
-              label="Email"
-              placeholder="you@example.com"
-              value={email}
-              onChangeText={(text) => { setEmail(text); clearError('email'); }}
-              error={errors.email}
-              keyboardType="email-address"
-              textContentType="emailAddress"
-              returnKeyType="next"
-            />
-
-            <Input
-              label="Password"
-              placeholder="Min 8 characters"
-              value={password}
-              onChangeText={(text) => { setPassword(text); clearError('password'); }}
-              error={errors.password}
-              secureTextEntry
-              textContentType="newPassword"
-              returnKeyType="next"
-            />
-
-            <Input
-              label="Confirm Password"
-              placeholder="Re-enter password"
-              value={confirmPassword}
-              onChangeText={(text) => { setConfirmPassword(text); clearError('confirmPassword'); }}
-              error={errors.confirmPassword}
-              secureTextEntry
-              textContentType="newPassword"
-              returnKeyType="done"
-              onSubmitEditing={handleRegister}
-            />
-
-            <Button
-              title="Create Account"
-              onPress={handleRegister}
-              loading={loading}
-              style={{ marginTop: 8 }}
-            />
-          </View>
-
-          {/* Footer */}
-          <View style={styles.footer}>
-            <Text style={[theme.textStyles.body, { color: theme.colors.subtle }]}>
-              Already have an account?{' '}
-            </Text>
-            <TouchableOpacity onPress={() => navigation.goBack()}>
-              <Text style={[theme.textStyles.bodyMedium, { color: theme.colors.primary }]}>
-                Sign In
+          <ScrollView
+            contentContainerStyle={styles.scrollContent}
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
+          >
+            <View style={styles.hero}>
+              <MicOrb size={64} active={false} />
+              <Text style={styles.title}>Create your account</Text>
+              <Text style={styles.subtitle}>
+                A few seconds to set up your AI assistant
               </Text>
-            </TouchableOpacity>
-          </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
+            </View>
+
+            <View style={styles.form}>
+              <DarkField
+                placeholder="Display name"
+                value={displayName}
+                onChangeText={(t) => { setDisplayName(t); if (errors.displayName) setErrors({ ...errors, displayName: undefined }); }}
+                error={errors.displayName}
+                textContentType="name"
+              />
+              <DarkField
+                placeholder="Email"
+                value={email}
+                onChangeText={(t) => { setEmail(t); if (errors.email) setErrors({ ...errors, email: undefined }); }}
+                error={errors.email}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                textContentType="emailAddress"
+              />
+              <DarkField
+                placeholder="Password (min 8 chars)"
+                value={password}
+                onChangeText={(t) => { setPassword(t); if (errors.password) setErrors({ ...errors, password: undefined }); }}
+                error={errors.password}
+                secureTextEntry
+                textContentType="newPassword"
+              />
+              <DarkField
+                placeholder="Confirm password"
+                value={confirmPassword}
+                onChangeText={(t) => { setConfirmPassword(t); if (errors.confirmPassword) setErrors({ ...errors, confirmPassword: undefined }); }}
+                error={errors.confirmPassword}
+                secureTextEntry
+                textContentType="newPassword"
+              />
+            </View>
+
+            <View style={styles.actions}>
+              <PillButton title="Create Account" variant="gradient" loading={loading} onPress={handleRegister} />
+
+              <View style={styles.footerRow}>
+                <Text style={[styles.footerText, { color: theme.colors.subtle }]}>Already have an account? </Text>
+                <TouchableOpacity onPress={() => navigation.goBack()}>
+                  <Text style={[styles.footerText, { color: theme.colors.heading, fontWeight: '600' }]}>
+                    Sign In
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </ScrollView>
+        </KeyboardAvoidingView>
+      </SafeAreaView>
+    </View>
+  );
+}
+
+function DarkField(props: React.ComponentProps<typeof TextInput> & { error?: string }) {
+  const { theme } = useTheme();
+  const { error, ...inputProps } = props;
+  return (
+    <View>
+      <View
+        style={[
+          styles.inputWrap,
+          {
+            backgroundColor: theme.colors.surface,
+            borderColor: error ? theme.colors.error : theme.colors.border,
+          },
+        ]}
+      >
+        <TextInput
+          {...inputProps}
+          placeholderTextColor={theme.colors.subtle}
+          style={[styles.input, { color: theme.colors.heading }]}
+        />
+      </View>
+      {error && <Text style={[styles.errorText, { color: theme.colors.error }]}>{error}</Text>}
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
+  root: { flex: 1, backgroundColor: '#000000' },
   flex: { flex: 1 },
-  scrollContent: {
-    flexGrow: 1,
-    justifyContent: 'center',
-    paddingHorizontal: 24,
-  },
-  header: {
-    marginBottom: 32,
-  },
-  form: {},
-  footer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    marginTop: 32,
-    paddingBottom: 24,
-  },
+  scrollContent: { flexGrow: 1, paddingHorizontal: 28, paddingBottom: 24 },
+  hero: { alignItems: 'center', paddingTop: 24, gap: 14, marginBottom: 28 },
+  title: { color: '#FFFFFF', fontSize: 26, fontWeight: '700', textAlign: 'center' },
+  subtitle: { color: '#9A8AB8', fontSize: 14, textAlign: 'center' },
+  form: { gap: 12 },
+  inputWrap: { borderWidth: 1, borderRadius: 16, paddingHorizontal: 16, height: 52, justifyContent: 'center' },
+  input: { fontSize: 15, paddingVertical: 0 },
+  errorText: { fontSize: 12, marginTop: 4, marginLeft: 4 },
+  actions: { gap: 18, marginTop: 28 },
+  footerRow: { flexDirection: 'row', justifyContent: 'center' },
+  footerText: { fontSize: 14 },
 });
