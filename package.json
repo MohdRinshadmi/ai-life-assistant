@@ -30,6 +30,7 @@
     "npm": ">=10.0.0"
   },
   "devDependencies": {
+    "drizzle-orm": "^0.45.2",
     "patch-package": "^8.0.1"
   }
 }

@@ -16,10 +16,15 @@
     "moduleResolution": "node",
     "baseUrl": "./src",
     "paths": {
+      "@config": ["config"],
       "@config/*": ["config/*"],
+      "@middleware": ["middleware"],
       "@middleware/*": ["middleware/*"],
+      "@modules": ["modules"],
       "@modules/*": ["modules/*"],
+      "@shared": ["shared"],
       "@shared/*": ["shared/*"],
+      "@infrastructure": ["infrastructure"],
       "@infrastructure/*": ["infrastructure/*"]
     },
     "typeRoots": ["./node_modules/@types", "./src/shared/types"]

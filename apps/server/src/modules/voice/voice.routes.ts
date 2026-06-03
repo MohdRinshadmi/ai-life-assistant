@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import multer from 'multer';
 import { z } from 'zod';
-import { authenticate, validate } from '../../middleware';
+import { authenticate, validate } from '@middleware';
 import { voiceController } from './voice.controller';
 
 export const voiceRoutes = Router();

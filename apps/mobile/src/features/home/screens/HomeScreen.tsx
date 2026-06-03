@@ -3,9 +3,9 @@ import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image } from 'rea
 import { SafeAreaView } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
-import { useTheme } from '../../../hooks/useTheme';
-import { useAuthStore } from '../../../stores/authStore';
-import { GlassCard } from '../../../components/ui/GlassCard';
+import { useTheme } from '@hooks/useTheme';
+import { useAuthStore } from '@stores/authStore';
+import { GlassCard } from '@components/ui/GlassCard';
 
 const ACTIONS: { key: string; title: string; subtitle: string }[] = [
   { key: 'chat',      title: 'Start a Chat',     subtitle: 'Ask anything' },

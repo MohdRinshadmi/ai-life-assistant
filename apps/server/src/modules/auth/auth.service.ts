@@ -1,14 +1,14 @@
 import { v4 as uuidv4 } from 'uuid';
-import { logger, config } from '../../config';
-import { ConflictError, UnauthorizedError, NotFoundError } from '../../shared/errors';
-import { hashPassword, comparePassword } from '../../shared/utils/password';
+import { logger, config } from '@config';
+import { AppError, ConflictError, UnauthorizedError, NotFoundError } from '@shared/errors';
+import { hashPassword, comparePassword } from '@shared/utils/password';
 import {
   signAccessToken,
   signRefreshToken,
   verifyRefreshToken,
   getExpirationDate,
   TokenPayload,
-} from '../../shared/utils/jwt';
+} from '@shared/utils/jwt';
 import { authRepository } from './auth.repository';
 
 /**
@@ -30,113 +30,153 @@ import { authRepository } from './auth.repository';
 
 export const authService = {
   async register(data: { email: string; password: string; displayName: string }) {
-    // Check for existing user
-    const existingUser = await authRepository.findUserByEmail(data.email);
-    if (existingUser) {
-      throw new ConflictError('An account with this email already exists');
+    try {
+      // Check for existing user
+      const existingUser = await authRepository.findUserByEmail(data.email);
+      if (existingUser) {
+        throw new ConflictError('An account with this email already exists');
+      }
+
+      // Hash password
+      const passwordHash = await hashPassword(data.password);
+
+      // Create user
+      const user = await authRepository.createUser({
+        email: data.email,
+        passwordHash,
+        displayName: data.displayName,
+      });
+
+      // Generate tokens
+      const tokens = await this._generateTokenPair(
+        { userId: user.id, email: user.email },
+        undefined // no device info on registration
+      );
+
+      logger.info({ msg: 'User registered', userId: user.id, email: user.email });
+
+      return { user, tokens };
+    } catch (error) {
+      // Only log unexpected failures here; operational AppErrors (e.g. duplicate
+      // email) are control flow and get logged at warn by the error middleware.
+      if (!(error instanceof AppError)) {
+        logger.error({ msg: 'Registration failed', email: data.email, err: error });
+      }
+      throw error;
     }
-
-    // Hash password
-    const passwordHash = await hashPassword(data.password);
-
-    // Create user
-    const user = await authRepository.createUser({
-      email: data.email,
-      passwordHash,
-      displayName: data.displayName,
-    });
-
-    // Generate tokens
-    const tokens = await this._generateTokenPair(
-      { userId: user.id, email: user.email },
-      undefined // no device info on registration
-    );
-
-    logger.info({ msg: 'User registered', userId: user.id, email: user.email });
-
-    return { user, tokens };
   },
 
   async login(data: { email: string; password: string; deviceInfo?: string }) {
-    // Find user
-    const user = await authRepository.findUserByEmail(data.email);
-    if (!user) {
-      // Use same error message to prevent email enumeration
-      throw new UnauthorizedError('Invalid email or password');
+    try {
+      // Find user
+      const user = await authRepository.findUserByEmail(data.email);
+      if (!user) {
+        // Use same error message to prevent email enumeration
+        throw new UnauthorizedError('Invalid email or password');
+      }
+
+      if (!user.isActive) {
+        throw new UnauthorizedError('Account is deactivated');
+      }
+
+      // Verify password
+      const isValid = await comparePassword(data.password, user.passwordHash);
+      if (!isValid) {
+        throw new UnauthorizedError('Invalid email or password');
+      }
+
+      // Update last login timestamp
+      await authRepository.updateLastLogin(user.id);
+
+      // Generate tokens
+      const tokens = await this._generateTokenPair(
+        { userId: user.id, email: user.email },
+        data.deviceInfo
+      );
+
+      logger.info({ msg: 'User logged in', userId: user.id });
+
+      return {
+        user: {
+          id: user.id,
+          email: user.email,
+          displayName: user.displayName,
+          avatarUrl: user.avatarUrl,
+          isActive: user.isActive,
+          createdAt: user.createdAt,
+          updatedAt: user.updatedAt,
+        },
+        tokens,
+      };
+    } catch (error) {
+      // Bad credentials are operational (logged at warn by middleware); only
+      // surface unexpected failures (e.g. DB/bcrypt) at error level here.
+      if (!(error instanceof AppError)) {
+        logger.error({ msg: 'Login failed', email: data.email, err: error });
+      }
+      throw error;
     }
-
-    if (!user.isActive) {
-      throw new UnauthorizedError('Account is deactivated');
-    }
-
-    // Verify password
-    const isValid = await comparePassword(data.password, user.passwordHash);
-    if (!isValid) {
-      throw new UnauthorizedError('Invalid email or password');
-    }
-
-    // Update last login timestamp
-    await authRepository.updateLastLogin(user.id);
-
-    // Generate tokens
-    const tokens = await this._generateTokenPair(
-      { userId: user.id, email: user.email },
-      data.deviceInfo
-    );
-
-    logger.info({ msg: 'User logged in', userId: user.id });
-
-    return {
-      user: {
-        id: user.id,
-        email: user.email,
-        displayName: user.displayName,
-        avatarUrl: user.avatarUrl,
-        isActive: user.isActive,
-        createdAt: user.createdAt,
-        updatedAt: user.updatedAt,
-      },
-      tokens,
-    };
   },
 
   async refreshTokens(rawRefreshToken: string) {
-    // Verify the refresh token JWT
-    const decoded = verifyRefreshToken(rawRefreshToken);
+    try {
+      // Verify the refresh token JWT
+      const decoded = verifyRefreshToken(rawRefreshToken);
 
-    // Hash the token to compare with stored hash
-    // Note: For refresh tokens we store them as-is (not bcrypt) for performance,
-    // since they're already cryptographically random JWTs.
-    // In a higher-security context, you'd bcrypt hash them.
+      // Hash the token to compare with stored hash
+      // Note: For refresh tokens we store them as-is (not bcrypt) for performance,
+      // since they're already cryptographically random JWTs.
+      // In a higher-security context, you'd bcrypt hash them.
 
-    // Find the user
-    const user = await authRepository.findUserById(decoded.userId);
-    if (!user) {
-      throw new UnauthorizedError('User not found');
+      // Find the user
+      const user = await authRepository.findUserById(decoded.userId);
+      if (!user) {
+        throw new UnauthorizedError('User not found');
+      }
+
+      // Generate new token pair (same family concept but new family for simplicity)
+      const tokens = await this._generateTokenPair(
+        { userId: user.id, email: user.email },
+        undefined
+      );
+
+      logger.info({ msg: 'Tokens refreshed', userId: user.id });
+
+      return { user, tokens };
+    } catch (error) {
+      // Invalid/expired tokens throw operational AppErrors; log only the rest.
+      if (!(error instanceof AppError)) {
+        logger.error({ msg: 'Token refresh failed', err: error });
+      }
+      throw error;
     }
-
-    // Generate new token pair (same family concept but new family for simplicity)
-    const tokens = await this._generateTokenPair(
-      { userId: user.id, email: user.email },
-      undefined
-    );
-
-    logger.info({ msg: 'Tokens refreshed', userId: user.id });
-
-    return { user, tokens };
   },
 
   async logout(userId: string) {
-    await authRepository.revokeAllUserTokens(userId);
-    logger.info({ msg: 'User logged out (all sessions)', userId });
+    try {
+      await authRepository.revokeAllUserTokens(userId);
+      logger.info({ msg: 'User logged out (all sessions)', userId });
+    } catch (error) {
+      if (!(error instanceof AppError)) {
+        logger.error({ msg: 'Logout failed', userId, err: error });
+      }
+      throw error;
+    }
   },
 
   async getProfile(userId: string) {
-    const user = await authRepository.findUserById(userId);
-    if (!user) {
-      throw new NotFoundError('User');
+    try {
+      const user = await authRepository.findUserById(userId);
+      if (!user) {
+        throw new NotFoundError('User');
+      }
+      return user;
+    } catch (error) {
+      if (!(error instanceof AppError)) {
+        logger.error({ msg: 'Get profile failed', userId, err: error });
+      }
+      throw error;
     }
-    return user;
   },
 
   // ── Private Helpers ───────────────────────────────

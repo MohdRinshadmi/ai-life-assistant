@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { authenticate, validate } from '../../middleware';
+import { authenticate, validate } from '@middleware';
 import { knowledgeController } from './knowledge.controller';
 import {
   createKnowledgeItemSchema,

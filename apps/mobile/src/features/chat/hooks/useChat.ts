@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Message, Task } from '@ai-life/shared';
-import { connectSocket, getSocket } from '../../../services/socket/socketService';
-import { useAuthStore } from '../../../stores/authStore';
+import { connectSocket, getSocket } from '@services/socket/socketService';
+import { useAuthStore } from '@stores/authStore';
 
 export interface UIMessage extends Omit<Message, 'tokenCount'> {
   isStreaming?: boolean;

@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { authService } from './auth.service';
-import { sendSuccess, sendCreated, sendNoContent } from '../../shared/utils/response';
+import { sendSuccess, sendCreated, sendNoContent } from '@shared/utils/response';
+import { logger } from '@config';
 
 /**
  * Auth Controller — HTTP request/response handling
@@ -25,6 +26,7 @@ export const authController = {
         tokens: result.tokens,
       });
     } catch (error) {
+      logger.error({ error }, 'Registration failed');
       next(error);
     }
   },

@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, StyleSheet, ViewStyle } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
-import { useTheme } from '../../hooks/useTheme';
+import { useTheme } from '@hooks/useTheme';
 
 interface Props {
   children: React.ReactNode;

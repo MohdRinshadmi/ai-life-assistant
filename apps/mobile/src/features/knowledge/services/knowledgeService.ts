@@ -1,4 +1,4 @@
-import { apiClient } from '../../../services/api/client';
+import { apiClient } from '@services/api/client';
 import { KnowledgeItem, CreateKnowledgeItemRequest, UpdateKnowledgeItemRequest } from '@ai-life/shared';
 
 interface ListResponse { items: KnowledgeItem[] }

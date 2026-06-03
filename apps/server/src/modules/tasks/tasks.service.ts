@@ -1,4 +1,4 @@
-import { NotFoundError } from '../../shared/errors';
+import { NotFoundError } from '@shared/errors';
 import { tasksRepository } from './tasks.repository';
 import { TaskStatus, TaskPriority, Task } from '@ai-life/shared';
 

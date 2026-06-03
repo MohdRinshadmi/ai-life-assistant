@@ -11,13 +11,13 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
-import { useTheme } from '../../../hooks/useTheme';
+import { useTheme } from '@hooks/useTheme';
 import { useChat } from '../hooks/useChat';
 import { useSpeech } from '../hooks/useSpeech';
 import { MessageBubble } from '../components/MessageBubble';
 import { ChatInput } from '../components/ChatInput';
-import { MicOrb } from '../../../components/ui/MicOrb';
-import { NeonEdgeFrame } from '../../../components/ui/NeonEdgeFrame';
+import { MicOrb } from '@components/ui/MicOrb';
+import { NeonEdgeFrame } from '@components/ui/NeonEdgeFrame';
 import type { UIMessage } from '../hooks/useChat';
 
 export function ChatScreen() {

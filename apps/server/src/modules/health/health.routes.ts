@@ -1,7 +1,7 @@
 import { Router, Request, Response } from 'express';
-import { checkDatabaseHealth } from '../../infrastructure/database';
-import { checkRedisHealth } from '../../infrastructure/redis';
-import { sendSuccess } from '../../shared/utils/response';
+import { checkDatabaseHealth } from '@infrastructure/database';
+import { checkRedisHealth } from '@infrastructure/redis';
+import { sendSuccess } from '@shared/utils/response';
 
 /**
  * Health Check Controller

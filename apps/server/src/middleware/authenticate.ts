@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
-import { UnauthorizedError } from '../shared/errors';
-import { verifyAccessToken } from '../shared/utils/jwt';
-import { logger } from '../config';
+import { UnauthorizedError } from '@shared/errors';
+import { verifyAccessToken } from '@shared/utils/jwt';
+import { logger } from '@config';
 
 /**
  * Authentication Middleware

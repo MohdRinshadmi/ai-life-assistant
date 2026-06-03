@@ -1,5 +1,5 @@
 import Redis from 'ioredis';
-import { config, logger } from '../../config';
+import { config, logger } from '@config';
 
 /**
  * Redis Client

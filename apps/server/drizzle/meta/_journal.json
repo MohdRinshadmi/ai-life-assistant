@@ -3,24 +3,10 @@
   "dialect": "postgresql",
   "entries": [
     {
-      "idx": 1,
+      "idx": 0,
       "version": "7",
-      "when": 1746614400000,
-      "tag": "0001_chat_tables",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1746700800000,
-      "tag": "0002_knowledge_items",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "7",
-      "when": 1746787200000,
-      "tag": "0003_tasks",
+      "when": 1780403893121,
+      "tag": "0000_petite_husk",
       "breakpoints": true
     }
   ]

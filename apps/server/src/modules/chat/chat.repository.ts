@@ -1,6 +1,6 @@
 import { eq, desc, and } from 'drizzle-orm';
-import { db } from '../../infrastructure/database';
-import { conversations, messages } from '../../infrastructure/database/schema';
+import { db } from '@infrastructure/database';
+import { conversations, messages } from '@infrastructure/database/schema';
 
 export const chatRepository = {
   // ── Conversations ─────────────────────────────────

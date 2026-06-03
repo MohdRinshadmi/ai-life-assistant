@@ -15,12 +15,12 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { useTheme } from '../../../hooks/useTheme';
-import { PillButton } from '../../../components/ui/PillButton';
-import { MicOrb } from '../../../components/ui/MicOrb';
+import { useTheme } from '@hooks/useTheme';
+import { PillButton } from '@components/ui/PillButton';
+import { MicOrb } from '@components/ui/MicOrb';
 import { authService } from '../services/authService';
 import { VALIDATION } from '@ai-life/shared';
-import { AuthStackParamList } from '../../../navigation/AuthNavigator';
+import { AuthStackParamList } from '@navigation/AuthNavigator';
 
 type RegisterNavProp = NativeStackNavigationProp<AuthStackParamList, 'Register'>;
 

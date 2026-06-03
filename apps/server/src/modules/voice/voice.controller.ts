@@ -1,8 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
 import OpenAI, { toFile } from 'openai';
-import { config, logger } from '../../config';
-import { ValidationError, BadRequestError } from '../../shared/errors';
-import { sendSuccess } from '../../shared/utils/response';
+import { config, logger } from '@config';
+import { ValidationError, BadRequestError } from '@shared/errors';
+import { sendSuccess } from '@shared/utils/response';
 
 const openai = new OpenAI({ apiKey: config.ai.openai.apiKey });
 

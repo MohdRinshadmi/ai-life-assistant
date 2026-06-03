@@ -1,9 +1,9 @@
 import { Server as SocketIOServer, Socket } from 'socket.io';
 import { ServerToClientEvents, ClientToServerEvents, ChatMessagePayload } from '@ai-life/shared';
-import { logger } from '../../config';
+import { logger } from '@config';
 import { chatService } from './chat.service';
-import { extractTaskFromConversation } from '../../shared/services/task-extraction.service';
-import { tasksService } from '../tasks/tasks.service';
+import { extractTaskFromConversation } from '@shared/services/task-extraction.service';
+import { tasksService } from '@modules/tasks/tasks.service';
 
 type IO = SocketIOServer<ClientToServerEvents, ServerToClientEvents>;
 type ChatSocket = Socket<ClientToServerEvents, ServerToClientEvents>;

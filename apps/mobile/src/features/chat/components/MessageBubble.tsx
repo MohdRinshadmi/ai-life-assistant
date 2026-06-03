@@ -1,7 +1,7 @@
 import React, { memo } from 'react';
 import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
 import { UIMessage } from '../hooks/useChat';
-import { useTheme } from '../../../hooks/useTheme';
+import { useTheme } from '@hooks/useTheme';
 
 interface Props {
   message: UIMessage;

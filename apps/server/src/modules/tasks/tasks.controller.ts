@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { tasksService } from './tasks.service';
-import { sendSuccess, sendCreated, sendNoContent } from '../../shared/utils/response';
+import { sendSuccess, sendCreated, sendNoContent } from '@shared/utils/response';
 import { TaskStatus } from '@ai-life/shared';
 
 export const tasksController = {

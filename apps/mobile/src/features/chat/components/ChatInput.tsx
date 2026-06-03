@@ -8,7 +8,7 @@ import {
   Platform,
   TextInput as RNTextInput,
 } from 'react-native';
-import { useTheme } from '../../../hooks/useTheme';
+import { useTheme } from '@hooks/useTheme';
 import { VoiceButton } from './VoiceButton';
 
 interface Props {

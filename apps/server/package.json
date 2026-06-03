@@ -5,8 +5,9 @@
   "description": "AI Life Assistant — Backend API Server",
   "main": "dist/server.js",
   "scripts": {
+    "predev": "lsof -ti tcp:3000 | xargs kill 2>/dev/null || true",
     "dev": "tsx watch src/server.ts",
-    "build": "tsc -p tsconfig.json",
+    "build": "tsc -p tsconfig.json && tsc-alias -p tsconfig.json",
     "start": "node dist/server.js",
     "typecheck": "tsc --noEmit",
     "lint": "eslint src/ --ext .ts",
@@ -49,9 +50,14 @@
     "@types/node": "^22.10.2",
     "@types/pg": "^8.11.10",
     "@types/uuid": "^10.0.0",
+    "@typescript-eslint/eslint-plugin": "^8.59.2",
+    "@typescript-eslint/parser": "^8.59.2",
     "drizzle-kit": "^0.31.10",
+    "eslint": "^8.57.1",
+    "tsc-alias": "^1.8.17",
     "tsx": "^4.19.2",
     "typescript": "^5.7.2",
+    "vite-tsconfig-paths": "^5.1.4",
     "vitest": "^2.1.8"
   }
 }

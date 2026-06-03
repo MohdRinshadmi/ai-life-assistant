@@ -12,8 +12,8 @@ import {
   Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useTheme } from '../../../hooks/useTheme';
-import { taskService } from '../taskService';
+import { useTheme } from '@hooks/useTheme';
+import { taskService } from '../services/taskService';
 import { Task, TaskStatus, TaskPriority } from '@ai-life/shared';
 
 const STATUS_FILTERS: { label: string; value: TaskStatus | undefined }[] = [

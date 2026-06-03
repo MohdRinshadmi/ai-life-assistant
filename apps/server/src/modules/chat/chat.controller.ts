@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { chatService } from './chat.service';
-import { sendSuccess, sendNoContent } from '../../shared/utils/response';
+import { sendSuccess, sendNoContent } from '@shared/utils/response';
 
 export const chatController = {
   async listConversations(req: Request, res: Response, next: NextFunction) {

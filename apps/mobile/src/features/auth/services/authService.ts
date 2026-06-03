@@ -1,7 +1,7 @@
-import { apiClient } from '../../../services/api/client';
-import { secureStorage } from '../../../services/storage/secureStorage';
-import { useAuthStore } from '../../../stores/authStore';
-import { logger } from '../../../utils/logger';
+import { apiClient } from '@services/api/client';
+import { secureStorage } from '@services/storage/secureStorage';
+import { useAuthStore } from '@stores/authStore';
+import { logger } from '@utils/logger';
 import type { AuthResponse, LoginRequest, RegisterRequest } from '@ai-life/shared';
 
 /**

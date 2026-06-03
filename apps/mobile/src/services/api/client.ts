@@ -1,6 +1,6 @@
-import axios, { AxiosInstance, AxiosRequestConfig, InternalAxiosRequestConfig } from 'axios';
-import { Platform } from 'react-native';
-import { useAuthStore } from '../../stores/authStore';
+import axios, { AxiosInstance, InternalAxiosRequestConfig } from 'axios';
+import { useAuthStore } from '@stores/authStore';
+import { env } from '@config';
 
 /**
  * API Client — Axios instance with interceptors
@@ -20,15 +20,9 @@ import { useAuthStore } from '../../stores/authStore';
  * - Timeout support
  */
 
-const BASE_URL = Platform.select({
-  android: 'http://10.0.2.2:3000/api/v1',  // Android emulator → host machine
-  ios: 'http://localhost:3000/api/v1',
-  default: 'http://localhost:3000/api/v1',
-});
-
 const apiClient: AxiosInstance = axios.create({
-  baseURL: BASE_URL,
-  timeout: 30_000, // 30s timeout
+  baseURL: env.apiBaseUrl,
+  timeout: env.apiTimeout,
   headers: {
     'Content-Type': 'application/json',
     Accept: 'application/json',
@@ -101,7 +95,7 @@ apiClient.interceptors.response.use(
         }
 
         // Call refresh endpoint
-        const { data } = await axios.post(`${BASE_URL}/auth/refresh`, {
+        const { data } = await axios.post(`${env.apiBaseUrl}/auth/refresh`, {
           refreshToken,
         });
 

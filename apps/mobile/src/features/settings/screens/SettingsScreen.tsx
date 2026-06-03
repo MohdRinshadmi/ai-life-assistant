@@ -1,8 +1,8 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useTheme } from '../../../hooks/useTheme';
-import { useAuthStore } from '../../../stores/authStore';
+import { useTheme } from '@hooks/useTheme';
+import { useAuthStore } from '@stores/authStore';
 
 export function SettingsScreen() {
   const { theme, toggleTheme, isDark } = useTheme();

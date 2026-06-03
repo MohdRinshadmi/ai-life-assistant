@@ -4,15 +4,15 @@ import helmet from 'helmet';
 import compression from 'compression';
 import rateLimit from 'express-rate-limit';
 import { RedisStore } from 'rate-limit-redis';
-import { config } from './config';
-import { requestLogger, errorHandler } from './middleware';
-import { redis } from './infrastructure/redis';
-import { healthRoutes } from './modules/health/health.routes';
-import { authRoutes } from './modules/auth/auth.routes';
-import { chatRoutes } from './modules/chat/chat.routes';
-import { knowledgeRoutes } from './modules/knowledge/knowledge.routes';
-import { voiceRoutes } from './modules/voice/voice.routes';
-import { taskRoutes } from './modules/tasks/tasks.routes';
+import { config } from '@config';
+import { requestLogger, errorHandler } from '@middleware';
+import { redis } from '@infrastructure/redis';
+import { healthRoutes } from '@modules/health/health.routes';
+import { authRoutes } from '@modules/auth/auth.routes';
+import { chatRoutes } from '@modules/chat/chat.routes';
+import { knowledgeRoutes } from '@modules/knowledge/knowledge.routes';
+import { voiceRoutes } from '@modules/voice/voice.routes';
+import { taskRoutes } from '@modules/tasks/tasks.routes';
 
 /**
  * Express Application Factory
@@ -64,6 +64,11 @@ export function createApp() {
         message: 'Too many requests, please try again later',
       },
     },
+    // Fail open: if Redis is unreachable the store call rejects, and express-rate-limit
+    // lets the request through instead of surfacing the error. A Redis outage should
+    // degrade rate limiting, not take down the API. Without this the rejected store
+    // promise becomes an unhandledRejection → process.exit(1) (see server.ts).
+    passOnStoreError: true,
     store: new RedisStore({
       // rate-limit-redis v4 accepts a sendCommand callback — decoupled from any specific Redis client
       // eslint-disable-next-line @typescript-eslint/no-explicit-any

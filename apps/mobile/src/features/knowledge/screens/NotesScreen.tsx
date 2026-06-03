@@ -14,7 +14,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { KnowledgeItem } from '@ai-life/shared';
-import { useTheme } from '../../../hooks/useTheme';
+import { useTheme } from '@hooks/useTheme';
 import { knowledgeService } from '../services/knowledgeService';
 
 export function NotesScreen() {

@@ -9,7 +9,7 @@ import {
   TextStyle,
   TextInputProps,
 } from 'react-native';
-import { useTheme } from '../../hooks/useTheme';
+import { useTheme } from '@hooks/useTheme';
 
 /**
  * Reusable Input component with label, error state, and icon support.

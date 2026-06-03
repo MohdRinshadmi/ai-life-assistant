@@ -1,9 +1,15 @@
-import { useState, useEffect, useCallback } from 'react';
-import Voice, {
-  SpeechResultsEvent,
-  SpeechErrorEvent,
-} from '@react-native-voice/voice';
+/**
+ * useSpeech (chat feature)
+ *
+ * Public shape kept intact for ChatScreen — internally now driven by the
+ * custom `AILSpeech` native module instead of `@react-native-voice/voice`.
+ * TTS (output) still uses `react-native-tts`; only the recognizer was
+ * rewritten natively.
+ */
+import { useCallback, useEffect, useState } from 'react';
 import Tts from 'react-native-tts';
+
+import { useSpeechTranscription } from '@hooks/useSpeechTranscription';
 
 interface UseSpeechReturn {
   isListening: boolean;
@@ -18,57 +24,33 @@ interface UseSpeechReturn {
 }
 
 export function useSpeech(): UseSpeechReturn {
-  const [isListening, setIsListening] = useState(false);
+  const {
+    transcript,
+    state,
+    error,
+    start,
+    stop,
+    reset,
+  } = useSpeechTranscription({ autoRequestPermissions: true, locale: 'en-US' });
+
   const [isSpeaking, setIsSpeaking] = useState(false);
-  const [transcript, setTranscript] = useState('');
-  const [speechError, setSpeechError] = useState<string | null>(null);
 
   useEffect(() => {
-    Voice.onSpeechResults = (e: SpeechResultsEvent) => {
-      if (e.value?.[0]) setTranscript(e.value[0]);
-    };
-    Voice.onSpeechError = (e: SpeechErrorEvent) => {
-      setSpeechError(e.error?.message ?? 'Speech recognition failed');
-      setIsListening(false);
-    };
-    Voice.onSpeechEnd = () => setIsListening(false);
-
     const onStart = () => setIsSpeaking(true);
     const onFinish = () => setIsSpeaking(false);
     const onCancel = () => setIsSpeaking(false);
     Tts.addEventListener('tts-start', onStart);
     Tts.addEventListener('tts-finish', onFinish);
     Tts.addEventListener('tts-cancel', onCancel);
-
     return () => {
-      void Voice.destroy().then(() => Voice.removeAllListeners());
       Tts.removeEventListener('tts-start', onStart);
       Tts.removeEventListener('tts-finish', onFinish);
       Tts.removeEventListener('tts-cancel', onCancel);
     };
   }, []);
 
-  const startListening = useCallback(async () => {
-    try {
-      setSpeechError(null);
-      setTranscript('');
-      await Voice.start('en-US');
-      setIsListening(true);
-    } catch {
-      setSpeechError('Failed to start voice recognition');
-    }
-  }, []);
-
-  const stopListening = useCallback(async () => {
-    try {
-      await Voice.stop();
-    } catch { /* ignore */ }
-    setIsListening(false);
-  }, []);
-
   const speak = useCallback((text: string) => {
     Tts.stop();
-    // Strip markdown characters for cleaner TTS output
     const plain = text.replace(/[*_`#>~\[\]]/g, '').replace(/\n+/g, ' ').trim();
     Tts.speak(plain);
   }, []);
@@ -78,17 +60,15 @@ export function useSpeech(): UseSpeechReturn {
     setIsSpeaking(false);
   }, []);
 
-  const clearTranscript = useCallback(() => setTranscript(''), []);
-
   return {
-    isListening,
+    isListening: state === 'listening',
     isSpeaking,
     transcript,
-    speechError,
-    startListening,
-    stopListening,
+    speechError: error?.message ?? null,
+    startListening: start,
+    stopListening: stop,
     speak,
     cancelSpeech,
-    clearTranscript,
+    clearTranscript: reset,
   };
 }

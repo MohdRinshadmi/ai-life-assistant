@@ -1,12 +1,12 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Platform, StyleSheet } from 'react-native';
-import { useTheme } from '../hooks/useTheme';
-import { ChatScreen } from '../features/chat/screens/ChatScreen';
-import { TasksScreen } from '../features/tasks/screens/TasksScreen';
-import { SettingsScreen } from '../features/settings/screens/SettingsScreen';
-import { HomeScreen } from '../features/home/screens/HomeScreen';
-import { NotesScreen } from '../features/knowledge/screens/NotesScreen';
+import { useTheme } from '@hooks/useTheme';
+import { ChatScreen } from '@features/chat/screens/ChatScreen';
+import { TasksScreen } from '@features/tasks/screens/TasksScreen';
+import { SettingsScreen } from '@features/settings/screens/SettingsScreen';
+import { HomeScreen } from '@features/home/screens/HomeScreen';
+import { NotesScreen } from '@features/knowledge/screens/NotesScreen';
 
 export type MainTabParamList = {
   Home: undefined;

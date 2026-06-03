@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { TouchableOpacity, StyleSheet, Animated } from 'react-native';
-import { useTheme } from '../../../hooks/useTheme';
+import { useTheme } from '@hooks/useTheme';
 
 interface Props {
   isListening: boolean;

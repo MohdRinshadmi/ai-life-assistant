@@ -9,7 +9,7 @@ import {
   TextStyle,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
-import { useTheme } from '../../hooks/useTheme';
+import { useTheme } from '@hooks/useTheme';
 
 type Variant = 'gradient' | 'outline';
 

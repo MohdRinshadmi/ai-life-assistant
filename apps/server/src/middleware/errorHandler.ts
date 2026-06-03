@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction, ErrorRequestHandler } from 'express';
 import { ZodError } from 'zod';
-import { AppError } from '../shared/errors';
-import { logger } from '../config';
+import { AppError } from '@shared/errors';
+import { logger } from '@config';
 
 /**
  * Global Error Handler

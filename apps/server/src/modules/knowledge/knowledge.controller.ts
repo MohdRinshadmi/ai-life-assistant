@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { knowledgeService } from './knowledge.service';
-import { sendSuccess, sendCreated, sendNoContent } from '../../shared/utils/response';
+import { sendSuccess, sendCreated, sendNoContent } from '@shared/utils/response';
 
 export const knowledgeController = {
   async create(req: Request, res: Response, next: NextFunction) {

@@ -1,5 +1,5 @@
 import OpenAI from 'openai';
-import { config, logger } from '../../config';
+import { config, logger } from '@config';
 
 const openai = new OpenAI({ apiKey: config.ai.openai.apiKey });
 

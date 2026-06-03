@@ -1,6 +1,6 @@
 import { eq, and, desc, asc } from 'drizzle-orm';
-import { db } from '../../infrastructure/database';
-import { tasks } from '../../infrastructure/database/schema';
+import { db } from '@infrastructure/database';
+import { tasks } from '@infrastructure/database/schema';
 import { TaskStatus, TaskPriority } from '@ai-life/shared';
 
 export const tasksRepository = {

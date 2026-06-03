@@ -1,8 +1,8 @@
 import { Server as HTTPServer } from 'http';
 import { Server as SocketIOServer } from 'socket.io';
 import { ServerToClientEvents, ClientToServerEvents } from '@ai-life/shared';
-import { config, logger } from '../../config';
-import { verifyAccessToken } from '../../shared/utils/jwt';
+import { config, logger } from '@config';
+import { verifyAccessToken } from '@shared/utils/jwt';
 
 export type TypedSocketServer = SocketIOServer<ClientToServerEvents, ServerToClientEvents>;
 

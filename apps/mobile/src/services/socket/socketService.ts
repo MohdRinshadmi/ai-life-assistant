@@ -1,14 +1,9 @@
 import { io, Socket } from 'socket.io-client';
-import { Platform } from 'react-native';
 import { ServerToClientEvents, ClientToServerEvents } from '@ai-life/shared';
+import { env } from '@config';
+import { SOCKET_OPTIONS } from '@constants';
 
 type AppSocket = Socket<ServerToClientEvents, ClientToServerEvents>;
-
-const SERVER_URL = Platform.select({
-  android: 'http://10.0.2.2:3000',
-  ios: 'http://localhost:3000',
-  default: 'http://localhost:3000',
-})!;
 
 let socket: AppSocket | null = null;
 
@@ -31,14 +26,12 @@ export function connectSocket(accessToken: string): AppSocket {
     socket = null;
   }
 
-  socket = io(SERVER_URL, {
+  // Force WebSocket transport — skip HTTP long-polling (slower, battery-hungry,
+  // and flaky with React Native's chunked-response handling).
+  socket = io(env.socketUrl, {
     auth: { token: accessToken },
     transports: ['websocket'],
-    reconnection: true,
-    reconnectionAttempts: 5,
-    reconnectionDelay: 1_000,
-    reconnectionDelayMax: 10_000,
-    timeout: 20_000,
+    ...SOCKET_OPTIONS,
   });
 
   return socket;

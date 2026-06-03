@@ -1,6 +1,6 @@
 import { eq, desc, and, sql } from 'drizzle-orm';
-import { db } from '../../infrastructure/database';
-import { knowledgeItems } from '../../infrastructure/database/schema';
+import { db } from '@infrastructure/database';
+import { knowledgeItems } from '@infrastructure/database/schema';
 import { KnowledgeSearchResult } from '@ai-life/shared';
 
 export const knowledgeRepository = {

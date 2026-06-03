@@ -1,6 +1,6 @@
 import { eq, and, isNull } from 'drizzle-orm';
-import { db } from '../../infrastructure/database';
-import { users, refreshTokens } from '../../infrastructure/database/schema';
+import { db } from '@infrastructure/database';
+import { users, refreshTokens } from '@infrastructure/database/schema';
 
 /**
  * Auth Repository — Data access layer

@@ -1,6 +1,6 @@
 import jwt, { JwtPayload, SignOptions } from 'jsonwebtoken';
-import { config, logger } from '../../config';
-import { UnauthorizedError } from '../../shared/errors';
+import { config, logger } from '@config';
+import { UnauthorizedError } from '@shared/errors';
 
 /**
  * JWT Token Utilities

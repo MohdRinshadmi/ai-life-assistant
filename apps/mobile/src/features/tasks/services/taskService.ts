@@ -1,4 +1,4 @@
-import { apiClient } from '../../services/api/client';
+import { apiClient } from '@services/api/client';
 import { Task, TaskStatus, TaskPriority } from '@ai-life/shared';
 
 interface ApiWrapper<T> {

@@ -1,8 +1,8 @@
-import { NotFoundError, ForbiddenError } from '../../shared/errors';
+import { NotFoundError, ForbiddenError } from '@shared/errors';
 import { chatRepository } from './chat.repository';
-import { buildContextMessages, LLMMessage, StreamCallbacks, streamChatCompletion } from '../../shared/services/llm.service';
-import { knowledgeService } from '../knowledge/knowledge.service';
-import { logger } from '../../config';
+import { buildContextMessages, LLMMessage, StreamCallbacks, streamChatCompletion } from '@shared/services/llm.service';
+import { knowledgeService } from '@modules/knowledge/knowledge.service';
+import { logger } from '@config';
 
 export const chatService = {
   async getOrCreateConversation(userId: string, conversationId?: string) {

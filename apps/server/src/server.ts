@@ -1,10 +1,10 @@
 import http from 'http';
 import { createApp } from './app';
-import { config, logger } from './config';
-import { closeDatabasePool } from './infrastructure/database';
-import { closeRedis } from './infrastructure/redis';
-import { createSocketServer } from './infrastructure/socket';
-import { registerChatGateway } from './modules/chat/chat.gateway';
+import { config, logger } from '@config';
+import { closeDatabasePool } from '@infrastructure/database';
+import { closeRedis } from '@infrastructure/redis';
+import { createSocketServer } from '@infrastructure/socket';
+import { registerChatGateway } from '@modules/chat/chat.gateway';
 
 /**
  * Server Entry Point

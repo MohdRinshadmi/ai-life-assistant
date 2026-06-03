@@ -1,6 +1,6 @@
 import { Router } from 'express';
-import { authenticate } from '../../middleware';
-import { validate } from '../../middleware';
+import { authenticate } from '@middleware';
+import { validate } from '@middleware';
 import { chatController } from './chat.controller';
 import {
   listConversationsSchema,

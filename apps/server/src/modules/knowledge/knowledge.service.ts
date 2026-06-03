@@ -1,5 +1,5 @@
-import { NotFoundError } from '../../shared/errors';
-import { embedText, safeEmbedText } from '../../shared/services/embedding.service';
+import { NotFoundError } from '@shared/errors';
+import { embedText, safeEmbedText } from '@shared/services/embedding.service';
 import { knowledgeRepository } from './knowledge.repository';
 import { KnowledgeSearchResult } from '@ai-life/shared';
 

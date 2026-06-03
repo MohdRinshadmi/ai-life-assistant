@@ -1,8 +1,8 @@
 import React, { useEffect } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { ThemeProvider } from './src/hooks/useTheme';
-import { RootNavigator } from './src/navigation/RootNavigator';
-import { authService } from './src/features/auth/services/authService';
+import { ThemeProvider } from '@hooks/useTheme';
+import { RootNavigator } from '@navigation/RootNavigator';
+import { authService } from '@features/auth/services/authService';
 
 /**
  * App Root

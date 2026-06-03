@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { View, StyleSheet, Animated, Pressable, ViewStyle } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
-import { useTheme } from '../../hooks/useTheme';
+import { useTheme } from '@hooks/useTheme';
 
 interface Props {
   size?: number;
