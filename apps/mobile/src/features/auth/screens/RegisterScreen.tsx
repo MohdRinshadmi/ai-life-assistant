@@ -19,6 +19,7 @@ import { useTheme } from '@hooks/useTheme';
 import { PillButton } from '@components/ui/PillButton';
 import { MicOrb } from '@components/ui/MicOrb';
 import { authService } from '../services/authService';
+import { env } from '@config';
 import { VALIDATION } from '@ai-life/shared';
 import { AuthStackParamList } from '@navigation/AuthNavigator';
 
@@ -62,8 +63,29 @@ export function RegisterScreen() {
         displayName: displayName.trim(),
       });
     } catch (error: any) {
-      const message =
-        error.response?.data?.error?.message || 'Registration failed. Please try again.';
+      // Diagnostic: distinguish "couldn't reach the server" from "server said no".
+      let message: string;
+      if (error.response) {
+        // Server responded with an error status (4xx/5xx) — show its message.
+        message =
+          error.response.data?.error?.message ||
+          `Server error (${error.response.status})`;
+      } else if (error.request) {
+        // Request was sent but no response — network/connectivity problem.
+        message =
+          `Can't reach the server at ${env.apiBaseUrl}.\n\n` +
+          `(${error.code || error.message}) — check the server is running and ` +
+          `your phone is on the same Wi-Fi.`;
+      } else {
+        // Error thrown before the request was even made.
+        message = error.message || 'Registration failed. Please try again.';
+      }
+      console.log('🛑 Register error →', {
+        baseURL: env.apiBaseUrl,
+        code: error.code,
+        status: error.response?.status,
+        message: error.message,
+      });
       Alert.alert('Registration failed', message);
     } finally {
       setLoading(false);

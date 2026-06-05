@@ -1,8 +1,14 @@
 import { apiClient } from '@services/api/client';
-import { KnowledgeItem, CreateKnowledgeItemRequest, UpdateKnowledgeItemRequest } from '@ai-life/shared';
+import {
+  KnowledgeItem,
+  CreateKnowledgeItemRequest,
+  UpdateKnowledgeItemRequest,
+  KnowledgeSearchResult,
+} from '@ai-life/shared';
 
 interface ListResponse { items: KnowledgeItem[] }
 interface ItemResponse { item: KnowledgeItem }
+interface SearchResponse { results: KnowledgeSearchResult[] }
 
 export const knowledgeService = {
   async list(page = 1, limit = 50): Promise<KnowledgeItem[]> {
@@ -24,5 +30,12 @@ export const knowledgeService = {
 
   async delete(id: string): Promise<void> {
     await apiClient.delete(`/knowledge/${id}`);
+  },
+
+  async search(query: string): Promise<KnowledgeSearchResult[]> {
+    const { data } = await apiClient.get<{ data: SearchResponse }>('/knowledge/search', {
+      params: { q: query },
+    });
+    return data.data.results;
   },
 };

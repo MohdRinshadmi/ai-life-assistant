@@ -1,13 +1,15 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { Message, Task } from '@ai-life/shared';
+import { Task } from '@ai-life/shared';
 import { connectSocket, getSocket } from '@services/socket/socketService';
 import { useAuthStore } from '@stores/authStore';
+import { useChatStore, UIMessage } from '../stores/chatStore';
+import { chatService } from '../services/chatService';
 
-export interface UIMessage extends Omit<Message, 'tokenCount'> {
-  isStreaming?: boolean;
-}
+// Re-exported so components keep importing the UI message type from here.
+export type { UIMessage };
 
 interface UseChatOptions {
+  /** When set, the existing message history is hydrated over REST on mount. */
   conversationId?: string;
   onMessageComplete?: (text: string) => void;
 }
@@ -16,6 +18,7 @@ interface UseChatReturn {
   messages: UIMessage[];
   isConnected: boolean;
   isStreaming: boolean;
+  isLoadingHistory: boolean;
   error: string | null;
   conversationId: string | null;
   newTask: Task | null;
@@ -24,94 +27,122 @@ interface UseChatReturn {
   clearNewTask: () => void;
 }
 
+/**
+ * useChat — bridges the chat store to the Socket.io transport.
+ *
+ * The store owns conversation state (messages, typing flag, error); this
+ * hook owns the socket lifecycle: it registers chat:* listeners that push
+ * streamed tokens into the store, sends user messages, and tears listeners
+ * down on unmount. REST history (chatService) hydrates the store when an
+ * existing conversationId is supplied.
+ */
 export function useChat({
   conversationId: initialConversationId,
   onMessageComplete,
 }: UseChatOptions = {}): UseChatReturn {
   const accessToken = useAuthStore((s) => s.accessToken);
-  const userId = useAuthStore((s) => s.user?.id ?? '');
 
-  const [messages, setMessages] = useState<UIMessage[]>([]);
+  // Store selectors — components re-render only on the slices they read.
+  const messages = useChatStore((s) => s.messages);
+  const conversationId = useChatStore((s) => s.conversationId);
+  const isStreaming = useChatStore((s) => s.isAssistantTyping);
+  const error = useChatStore((s) => s.error);
+
   const [isConnected, setIsConnected] = useState(false);
-  const [isStreaming, setIsStreaming] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [conversationId, setConversationId] = useState<string | null>(initialConversationId ?? null);
+  const [isLoadingHistory, setIsLoadingHistory] = useState(false);
   const [newTask, setNewTask] = useState<Task | null>(null);
 
   const onMessageCompleteRef = useRef(onMessageComplete);
+  onMessageCompleteRef.current = onMessageComplete;
 
-  // Track the assistant message ID being streamed so we can update it in place
-  const streamingMessageIdRef = useRef<string | null>(null);
+  // Accumulated streamed text, kept in a ref so chat:done can report it.
   const streamBufferRef = useRef<string>('');
 
+  // ── Hydrate history for an existing conversation ──────────────────
+  useEffect(() => {
+    const {
+      setConversationId,
+      setMessages,
+      setError,
+      reset,
+    } = useChatStore.getState();
+
+    if (!initialConversationId) {
+      // Fresh conversation — start from a clean slate.
+      reset();
+      return;
+    }
+
+    let cancelled = false;
+    setConversationId(initialConversationId);
+    setIsLoadingHistory(true);
+
+    chatService
+      .getMessages(initialConversationId)
+      .then((history) => {
+        if (cancelled) return;
+        setMessages(history.map(({ tokenCount, ...m }) => m));
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setError('Could not load conversation history.');
+      })
+      .finally(() => {
+        if (!cancelled) setIsLoadingHistory(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [initialConversationId]);
+
+  // ── Socket lifecycle + chat:* listeners ───────────────────────────
   useEffect(() => {
     if (!accessToken) return;
 
-    const socket = connectSocket(accessToken);
+    const socket = getSocket() ?? connectSocket(accessToken);
+
+    const {
+      startAssistant,
+      appendToken,
+      finishAssistant,
+      setError,
+    } = useChatStore.getState();
 
     const onConnect = () => setIsConnected(true);
     const onDisconnect = () => setIsConnected(false);
 
-    const onChatStart = (payload: { conversationId: string; userMessageId: string; assistantMessageId: string }) => {
-      setConversationId(payload.conversationId);
-      streamingMessageIdRef.current = payload.assistantMessageId;
+    const onChatStart = (payload: {
+      conversationId: string;
+      userMessageId: string;
+      assistantMessageId: string;
+    }) => {
       streamBufferRef.current = '';
-
-      // Add a blank streaming assistant bubble
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: payload.assistantMessageId,
-          conversationId: payload.conversationId,
-          role: 'assistant',
-          content: '',
-          createdAt: new Date().toISOString(),
-          isStreaming: true,
-        },
-      ]);
+      startAssistant({
+        conversationId: payload.conversationId,
+        assistantMessageId: payload.assistantMessageId,
+      });
     };
 
     const onChatToken = (payload: { token: string }) => {
       streamBufferRef.current += payload.token;
-      const buffered = streamBufferRef.current;
-
-      setMessages((prev) =>
-        prev.map((m) =>
-          m.id === streamingMessageIdRef.current
-            ? { ...m, content: buffered }
-            : m
-        )
-      );
+      appendToken(payload.token);
     };
 
     const onChatDone = () => {
       const completedText = streamBufferRef.current;
-      setIsStreaming(false);
-      setMessages((prev) =>
-        prev.map((m) =>
-          m.id === streamingMessageIdRef.current ? { ...m, isStreaming: false } : m
-        )
-      );
-      streamingMessageIdRef.current = null;
+      finishAssistant();
       streamBufferRef.current = '';
       if (completedText) onMessageCompleteRef.current?.(completedText);
     };
 
-    const onTaskCreated = (payload: { task: Task; source: string }) => {
-      setNewTask(payload.task);
+    const onChatError = (payload: { code: string; message: string }) => {
+      setError(payload.message);
+      streamBufferRef.current = '';
     };
 
-    const onChatError = (payload: { code: string; message: string }) => {
-      setIsStreaming(false);
-      setError(payload.message);
-      // Remove empty assistant bubble if stream never started producing tokens
-      setMessages((prev) =>
-        prev.filter(
-          (m) => !(m.id === streamingMessageIdRef.current && m.content === '')
-        )
-      );
-      streamingMessageIdRef.current = null;
-      streamBufferRef.current = '';
+    const onTaskCreated = (payload: { task: Task; source: string }) => {
+      setNewTask(payload.task);
     };
 
     socket.on('connect', onConnect);
@@ -135,37 +166,42 @@ export function useChat({
     };
   }, [accessToken]);
 
-  const sendMessage = useCallback(
-    (content: string) => {
-      const socket = getSocket();
-      if (!socket?.connected) {
-        setError('Not connected. Please wait and try again.');
-        return;
-      }
-      if (isStreaming) return;
+  // ── Send ───────────────────────────────────────────────────────────
+  const sendMessage = useCallback((content: string) => {
+    const trimmed = content.trim();
+    if (!trimmed) return;
 
-      const userMessage: UIMessage = {
-        id: `local-${Date.now()}`,
-        conversationId: conversationId ?? '',
-        role: 'user',
-        content,
-        createdAt: new Date().toISOString(),
-      };
+    const { appendUserMessage, setError, isAssistantTyping, conversationId: convId } =
+      useChatStore.getState();
 
-      setMessages((prev) => [...prev, userMessage]);
-      setIsStreaming(true);
-      setError(null);
+    if (isAssistantTyping) return;
 
-      socket.emit('chat:message', {
-        content,
-        conversationId: conversationId ?? undefined,
-      });
-    },
-    [conversationId, isStreaming]
-  );
+    const socket = getSocket();
+    if (!socket?.connected) {
+      setError('Not connected. Please wait and try again.');
+      return;
+    }
 
-  const clearError = useCallback(() => setError(null), []);
+    appendUserMessage(trimmed);
+    socket.emit('chat:message', {
+      content: trimmed,
+      conversationId: convId ?? undefined,
+    });
+  }, []);
+
+  const clearError = useCallback(() => useChatStore.getState().setError(null), []);
   const clearNewTask = useCallback(() => setNewTask(null), []);
 
-  return { messages, isConnected, isStreaming, error, conversationId, newTask, sendMessage, clearError, clearNewTask };
+  return {
+    messages,
+    isConnected,
+    isStreaming,
+    isLoadingHistory,
+    error,
+    conversationId,
+    newTask,
+    sendMessage,
+    clearError,
+    clearNewTask,
+  };
 }

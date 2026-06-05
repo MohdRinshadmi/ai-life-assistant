@@ -216,7 +216,8 @@ const styles = StyleSheet.create({
   grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 12,
+    justifyContent: 'space-between',
+    rowGap: 12,
   },
   gridItem: {
     width: '48%',
