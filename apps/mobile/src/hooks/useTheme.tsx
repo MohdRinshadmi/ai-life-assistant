@@ -1,5 +1,4 @@
 import React, { createContext, useContext, useState, useCallback, useMemo } from 'react';
-import { useColorScheme } from 'react-native';
 import { Theme, darkTheme, lightTheme } from '@theme';
 
 /**
@@ -23,8 +22,10 @@ interface ThemeProviderProps {
 }
 
 export function ThemeProvider({ children }: ThemeProviderProps) {
-  const systemColorScheme = useColorScheme();
-  const [isDark, setIsDark] = useState(systemColorScheme === 'dark');
+  // Dark-first: every screen paints the dark Syncra backdrop, so following a
+  // light system scheme renders dark-on-dark text. Users opt into light mode
+  // via the Settings toggle instead.
+  const [isDark, setIsDark] = useState(true);
 
   const toggleTheme = useCallback(() => {
     setIsDark((prev) => !prev);

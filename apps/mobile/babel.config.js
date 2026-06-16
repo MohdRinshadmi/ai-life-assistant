@@ -34,5 +34,7 @@ module.exports = {
         },
       },
     ],
+    // Must stay last so worklets are transformed after every other plugin.
+    'react-native-worklets/plugin',
   ],
 };

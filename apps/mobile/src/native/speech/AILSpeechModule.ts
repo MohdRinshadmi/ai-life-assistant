@@ -16,6 +16,7 @@
 import {
   NativeEventEmitter,
   NativeModules,
+  PermissionsAndroid,
   Platform,
   type EmitterSubscription,
 } from 'react-native';
@@ -29,9 +30,8 @@ import type {
 
 const LINKING_ERROR =
   `AILSpeech native module is not linked.\n\n` +
-  `• Did you run \`pod install\` inside ios/?\n` +
-  `• Did you rebuild the app (not just reload the JS bundle)?\n` +
-  `• On Android this module is not implemented — guard your calls with Platform.OS === 'ios'.`;
+  `• iOS: did you run \`pod install\` inside ios/ and rebuild (not just reload JS)?\n` +
+  `• Android: did you rebuild after adding AILSpeechPackage() in MainApplication.kt?`;
 
 interface NativeAILSpeech {
   getPermissionStatus(): Promise<SpeechPermissionResult>;
@@ -54,7 +54,9 @@ const Native: NativeAILSpeech =
     },
   }) as NativeAILSpeech);
 
-const isSupported = Platform.OS === 'ios' && !!NativeModules.AILSpeech;
+// Implemented on both iOS (Swift) and Android (Kotlin) now — gate purely on
+// whether the native module registered.
+const isSupported = !!NativeModules.AILSpeech;
 
 /**
  * Single shared emitter. RN reference-counts listeners under the hood, so we
@@ -105,7 +107,22 @@ export const AILSpeech = {
     return Native.getPermissionStatus();
   },
 
-  requestPermissions(): Promise<SpeechPermissionResult> {
+  async requestPermissions(): Promise<SpeechPermissionResult> {
+    // Android: the runtime prompt has to come from the JS side (the native
+    // module has no Activity-bound permission flow), so drive it here.
+    if (Platform.OS === 'android') {
+      const result = await PermissionsAndroid.request(
+        PermissionsAndroid.PERMISSIONS.RECORD_AUDIO,
+        {
+          title: 'Microphone access',
+          message: 'AI Life Assistant needs the microphone to transcribe your voice.',
+          buttonPositive: 'OK',
+          buttonNegative: 'Not now',
+        }
+      );
+      const granted = result === PermissionsAndroid.RESULTS.GRANTED;
+      return { speech: 'granted', microphone: granted ? 'granted' : 'denied', granted };
+    }
     return Native.requestPermissions();
   },
 

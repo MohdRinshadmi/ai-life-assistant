@@ -4,6 +4,7 @@ import { logger } from '@config';
 import { chatService } from './chat.service';
 import { extractTaskFromConversation } from '@shared/services/task-extraction.service';
 import { tasksService } from '@modules/tasks/tasks.service';
+import { NotFoundError, ForbiddenError } from '@shared/errors';
 
 type IO = SocketIOServer<ClientToServerEvents, ServerToClientEvents>;
 type ChatSocket = Socket<ClientToServerEvents, ServerToClientEvents>;
@@ -50,7 +51,6 @@ async function handleChatMessage(
 
   logger.info({ msg: 'Chat message received', userId, conversationId });
 
-  let totalOutputTokens = 0;
   let finalConversationId = '';
   let finalAssistantId = '';
 
@@ -71,7 +71,6 @@ async function handleChatMessage(
       },
 
       onDone: (fullText, _inputTokens, outputTokens) => {
-        totalOutputTokens = outputTokens;
         socket.emit('chat:done', {
           conversationId: finalConversationId,
           assistantMessageId: finalAssistantId,
@@ -94,7 +93,7 @@ async function handleChatMessage(
       },
 
       onError: (error) => {
-        logger.error({ msg: 'Chat stream error', userId, error: error.message });
+        logger.error({ msg: 'Chat stream error', userId, err: error });
         socket.emit('chat:error', {
           code: 'STREAM_ERROR',
           message: 'Failed to get a response. Please try again.',
@@ -102,7 +101,28 @@ async function handleChatMessage(
       },
     });
   } catch (error) {
-    logger.error({ msg: 'Unhandled chat gateway error', userId, error });
+    // Domain errors (stale/foreign conversationId) are expected client conditions,
+    // not server faults. Log at warn and return a specific, actionable code so the
+    // client can clear its cached conversationId and start a fresh conversation.
+    if (error instanceof NotFoundError) {
+      logger.warn({ msg: 'Chat request for missing conversation', userId, conversationId });
+      socket.emit('chat:error', {
+        code: 'CONVERSATION_NOT_FOUND',
+        message: 'That conversation no longer exists. Starting a new one.',
+      });
+      return;
+    }
+
+    if (error instanceof ForbiddenError) {
+      logger.warn({ msg: 'Chat request for forbidden conversation', userId, conversationId });
+      socket.emit('chat:error', {
+        code: 'FORBIDDEN',
+        message: 'You do not have access to that conversation.',
+      });
+      return;
+    }
+
+    logger.error({ msg: 'Unhandled chat gateway error', userId, conversationId, err: error });
     socket.emit('chat:error', {
       code: 'INTERNAL_ERROR',
       message: 'Something went wrong. Please try again.',

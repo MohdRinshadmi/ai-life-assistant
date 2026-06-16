@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Mic glyph only — the launcher tints this for Android 13+ themed icons -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M54,34 a7.5,7.5 0 0 1 7.5,7.5 v12 a7.5,7.5 0 0 1 -15,0 v-12 a7.5,7.5 0 0 1 7.5,-7.5 z" />
+    <path
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="4"
+        android:strokeLineCap="round"
+        android:fillColor="#00000000"
+        android:pathData="M41,51 v2.5 a13,13 0 0 0 26,0 v-2.5" />
+    <path
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="4"
+        android:strokeLineCap="round"
+        android:fillColor="#00000000"
+        android:pathData="M54,66.5 v7" />
+</vector>

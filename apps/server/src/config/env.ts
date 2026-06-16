@@ -35,12 +35,13 @@ const envSchema = z.object({
   JWT_REFRESH_EXPIRES_IN: z.string().default('7d'),
   BCRYPT_SALT_ROUNDS: z.coerce.number().default(12),
 
-  // AI
-  OPENAI_API_KEY: z.string().optional(),
-  OPENAI_MODEL: z.string().default('gpt-4o'),
-  OPENAI_EMBEDDING_MODEL: z.string().default('text-embedding-3-small'),
-  ANTHROPIC_API_KEY: z.string().optional(),
-  ANTHROPIC_MODEL: z.string().default('claude-sonnet-4-6'),
+  // AI — Gemini for text generation + embeddings, Groq for voice (STT/TTS)
+  GEMINI_API_KEY: z.string().optional(),
+  GEMINI_MODEL: z.string().default('gemini-2.5-flash'),
+  GROQ_API_KEY: z.string().optional(),
+  GROQ_STT_MODEL: z.string().default('whisper-large-v3-turbo'),
+  GROQ_TTS_MODEL: z.string().default('canopylabs/orpheus-v1-english'),
+  GROQ_TTS_VOICE: z.string().default('hannah'),
 
   // AWS
   AWS_REGION: z.string().default('us-east-1'),
@@ -109,14 +110,15 @@ export const config = {
     bcryptSaltRounds: env.BCRYPT_SALT_ROUNDS,
   },
   ai: {
-    openai: {
-      apiKey: env.OPENAI_API_KEY,
-      model: env.OPENAI_MODEL,
-      embeddingModel: env.OPENAI_EMBEDDING_MODEL,
+    gemini: {
+      apiKey: env.GEMINI_API_KEY,
+      model: env.GEMINI_MODEL,
     },
-    anthropic: {
-      apiKey: env.ANTHROPIC_API_KEY,
-      model: env.ANTHROPIC_MODEL,
+    groq: {
+      apiKey: env.GROQ_API_KEY,
+      sttModel: env.GROQ_STT_MODEL,
+      ttsModel: env.GROQ_TTS_MODEL,
+      ttsVoice: env.GROQ_TTS_VOICE,
     },
   },
   aws: {

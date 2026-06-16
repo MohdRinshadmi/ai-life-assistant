@@ -9,7 +9,7 @@ export const voiceRoutes = Router();
 voiceRoutes.use(authenticate);
 
 // In-memory storage — file is available as req.file.buffer.
-// Max 25MB matches OpenAI Whisper's file size limit.
+// Max 25MB matches Groq's free-tier file size limit for transcription.
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: 25 * 1024 * 1024 },
@@ -31,7 +31,7 @@ voiceRoutes.post(
   validate({
     body: z.object({
       text: z.string().min(1).max(4096),
-      voice: z.enum(['alloy', 'echo', 'fable', 'onyx', 'nova', 'shimmer']).optional(),
+      voice: z.enum(['autumn', 'diana', 'hannah', 'austin', 'daniel', 'troy']).optional(),
     }),
   }),
   voiceController.synthesize

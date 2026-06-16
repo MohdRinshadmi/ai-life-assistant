@@ -9,7 +9,11 @@
 /* Begin PBXBuildFile section */
 		0C80B921A6F3F58F76C31292 /* libPods-AILifeAssistant.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 5DCACB8F33CDC322A6C60F78 /* libPods-AILifeAssistant.a */; };
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
+		1C3F888BA2BBCAE0B6E36CE2 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB81A68108700A75B9A /* PrivacyInfo.xcprivacy */; };
 		761780ED2CA45674006654EE /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761780EC2CA45674006654EE /* AppDelegate.swift */; };
+		C3BF214BCC6DA6F530373141 /* AILSpeech.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7F9CE6CE854E41CDB5EC7CDB /* AILSpeech.swift */; };
+		869651D62023CA17AD6C5F40 /* AILSpeechErrors.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B04D8B59C2CB53034D1DAC8 /* AILSpeechErrors.swift */; };
+		FF9AF687BDA59C69F7EDC755 /* AILSpeech.m in Sources */ = {isa = PBXBuildFile; fileRef = A2CABEA6FFDFD4E1A9B6AEAA /* AILSpeech.m */; };
 		81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */; };
 /* End PBXBuildFile section */
 
@@ -22,6 +26,9 @@
 		5709B34CF0A7D63546082F79 /* Pods-AILifeAssistant.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-AILifeAssistant.release.xcconfig"; path = "Target Support Files/Pods-AILifeAssistant/Pods-AILifeAssistant.release.xcconfig"; sourceTree = "<group>"; };
 		5DCACB8F33CDC322A6C60F78 /* libPods-AILifeAssistant.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-AILifeAssistant.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		761780EC2CA45674006654EE /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppDelegate.swift; path = AILifeAssistant/AppDelegate.swift; sourceTree = "<group>"; };
+		7F9CE6CE854E41CDB5EC7CDB /* AILSpeech.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AILSpeech.swift; path = AILifeAssistant/Modules/Speech/AILSpeech.swift; sourceTree = "<group>"; };
+		8B04D8B59C2CB53034D1DAC8 /* AILSpeechErrors.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AILSpeechErrors.swift; path = AILifeAssistant/Modules/Speech/AILSpeechErrors.swift; sourceTree = "<group>"; };
+		A2CABEA6FFDFD4E1A9B6AEAA /* AILSpeech.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = AILSpeech.m; path = AILifeAssistant/Modules/Speech/AILSpeech.m; sourceTree = "<group>"; };
 		81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = LaunchScreen.storyboard; path = AILifeAssistant/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
@@ -43,6 +50,9 @@
 			children = (
 				13B07FB51A68108700A75B9A /* Images.xcassets */,
 				761780EC2CA45674006654EE /* AppDelegate.swift */,
+				7F9CE6CE854E41CDB5EC7CDB /* AILSpeech.swift */,
+				8B04D8B59C2CB53034D1DAC8 /* AILSpeechErrors.swift */,
+				A2CABEA6FFDFD4E1A9B6AEAA /* AILSpeech.m */,
 				13B07FB61A68108700A75B9A /* Info.plist */,
 				81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */,
 				13B07FB81A68108700A75B9A /* PrivacyInfo.xcprivacy */,
@@ -159,6 +169,7 @@
 			files = (
 				81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */,
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
+				1C3F888BA2BBCAE0B6E36CE2 /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -245,6 +256,9 @@
 			buildActionMask = 2147483647;
 			files = (
 				761780ED2CA45674006654EE /* AppDelegate.swift in Sources */,
+				C3BF214BCC6DA6F530373141 /* AILSpeech.swift in Sources */,
+				869651D62023CA17AD6C5F40 /* AILSpeechErrors.swift in Sources */,
+				FF9AF687BDA59C69F7EDC755 /* AILSpeech.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -271,7 +285,7 @@
 					"-ObjC",
 					"-lc++",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "com.ailife.assistant";
+				PRODUCT_BUNDLE_IDENTIFIER = com.ailife.assistant;
 				PRODUCT_NAME = AILifeAssistant;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
@@ -300,7 +314,7 @@
 					"-ObjC",
 					"-lc++",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "com.ailife.assistant";
+				PRODUCT_BUNDLE_IDENTIFIER = com.ailife.assistant;
 				PRODUCT_NAME = AILifeAssistant;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SWIFT_VERSION = 5.0;
@@ -370,6 +384,10 @@
 				);
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
+				OTHER_CFLAGS = (
+					"$(inherited)",
+					"-DRCT_REMOVE_LEGACY_ARCH=1",
+				);
 				OTHER_CPLUSPLUSFLAGS = (
 					"$(OTHER_CFLAGS)",
 					"-DFOLLY_NO_CONFIG",
@@ -377,8 +395,13 @@
 					"-DFOLLY_USE_LIBCPP=1",
 					"-DFOLLY_CFG_NO_COROUTINES=1",
 					"-DFOLLY_HAVE_CLOCK_GETTIME=1",
+					"-DRCT_REMOVE_LEGACY_ARCH=1",
 				);
+				REACT_NATIVE_PATH = "${PODS_ROOT}/../../../../node_modules/react-native";
 				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) DEBUG";
+				SWIFT_ENABLE_EXPLICIT_MODULES = NO;
+				USE_HERMES = true;
 			};
 			name = Debug;
 		};
@@ -435,6 +458,10 @@
 					"\"$(inherited)\"",
 				);
 				MTL_ENABLE_DEBUG_INFO = NO;
+				OTHER_CFLAGS = (
+					"$(inherited)",
+					"-DRCT_REMOVE_LEGACY_ARCH=1",
+				);
 				OTHER_CPLUSPLUSFLAGS = (
 					"$(OTHER_CFLAGS)",
 					"-DFOLLY_NO_CONFIG",
@@ -442,8 +469,12 @@
 					"-DFOLLY_USE_LIBCPP=1",
 					"-DFOLLY_CFG_NO_COROUTINES=1",
 					"-DFOLLY_HAVE_CLOCK_GETTIME=1",
+					"-DRCT_REMOVE_LEGACY_ARCH=1",
 				);
+				REACT_NATIVE_PATH = "${PODS_ROOT}/../../../../node_modules/react-native";
 				SDKROOT = iphoneos;
+				SWIFT_ENABLE_EXPLICIT_MODULES = NO;
+				USE_HERMES = true;
 				VALIDATE_PRODUCT = YES;
 			};
 			name = Release;

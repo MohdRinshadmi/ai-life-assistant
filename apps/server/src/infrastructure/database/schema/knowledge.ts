@@ -9,7 +9,8 @@ import { users } from './users';
  * Data flows as number[] in TypeScript and as the pgvector string format
  * "[0.1,0.2,...]" at the DB driver boundary.
  *
- * dimensions=1536 matches OpenAI text-embedding-3-small.
+ * dimensions=1536 matches gemini-embedding-001 truncated to 1536
+ * (see EMBEDDING_DIMENSIONS in shared/services/gemini.service.ts).
  */
 const vector = (name: string, dimensions: number) =>
   customType<{ data: number[]; driverData: string }>({

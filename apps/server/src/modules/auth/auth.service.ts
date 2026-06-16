@@ -34,6 +34,7 @@ export const authService = {
       // Check for existing user
       const existingUser = await authRepository.findUserByEmail(data.email);
       if (existingUser) {
+        logger.warn({ msg: 'Registration failed - email already in use', email: data.email });
         throw new ConflictError('An account with this email already exists');
       }
 

@@ -1,9 +1,5 @@
-import Anthropic from '@anthropic-ai/sdk';
-import { config, logger } from '@config';
-
-const anthropic = new Anthropic({
-  apiKey: config.ai.anthropic.apiKey,
-});
+import { logger } from '@config';
+import { isGeminiConfigured, streamChat, ChatTurn } from '@shared/services/gemini.service';
 
 const BASE_SYSTEM_PROMPT = `You are an AI Life Assistant — a thoughtful, concise personal assistant that helps users manage tasks, track goals, reflect on their day, and stay organised. You give practical, direct answers. When you don't know something, say so. Never make up facts.`;
 
@@ -19,7 +15,11 @@ export interface StreamCallbacks {
 }
 
 /**
- * Stream a chat completion from Anthropic Claude.
+ * Stream a chat completion from Gemini.
+ *
+ * This module owns the *conversation* concerns (system prompt, RAG grounding,
+ * context budgeting); the raw API mechanics live in gemini.service. That split
+ * means swapping providers again later touches one file, not the chat module.
  *
  * ragContext — pre-retrieved knowledge snippets injected into the system
  * prompt as grounding facts. When present, the model is instructed to prefer
@@ -27,7 +27,7 @@ export interface StreamCallbacks {
  *
  * Why inject into the system prompt rather than as a "user" message?
  * - Keeps the conversation turn structure clean (no fake user messages)
- * - System prompt is cached by Anthropic prompt caching — cheaper at scale
+ * - Gemini caches large repeated prefixes implicitly — cheaper at scale
  * - Clearer separation of instructions from dialogue
  */
 export async function streamChatCompletion(
@@ -35,8 +35,8 @@ export async function streamChatCompletion(
   callbacks: StreamCallbacks,
   ragContext?: string
 ): Promise<void> {
-  if (!config.ai.anthropic.apiKey) {
-    callbacks.onError(new Error('Anthropic API key not configured'));
+  if (!isGeminiConfigured()) {
+    callbacks.onError(new Error('Gemini API key not configured'));
     return;
   }
 
@@ -45,30 +45,13 @@ export async function streamChatCompletion(
     : BASE_SYSTEM_PROMPT;
 
   try {
-    const stream = anthropic.messages.stream({
-      model: config.ai.anthropic.model,
-      max_tokens: 1024,
+    const result = await streamChat(messages as ChatTurn[], {
       system: systemPrompt,
-      messages: messages.map((m) => ({
-        role: m.role,
-        content: m.content,
-      })),
+      maxOutputTokens: 1024,
+      onToken: callbacks.onToken,
     });
 
-    stream.on('text', (text) => {
-      callbacks.onToken(text);
-    });
-
-    const finalMessage = await stream.finalMessage();
-
-    const inputTokens = finalMessage.usage.input_tokens;
-    const outputTokens = finalMessage.usage.output_tokens;
-    const fullText = finalMessage.content
-      .filter((b) => b.type === 'text')
-      .map((b) => (b as { type: 'text'; text: string }).text)
-      .join('');
-
-    callbacks.onDone(fullText, inputTokens, outputTokens);
+    callbacks.onDone(result.text, result.inputTokens, result.outputTokens);
   } catch (error) {
     logger.error({ msg: 'LLM stream error', error });
     callbacks.onError(error instanceof Error ? error : new Error('LLM call failed'));

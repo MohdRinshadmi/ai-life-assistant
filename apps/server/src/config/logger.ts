@@ -89,6 +89,10 @@ export const logger = pino(
     level: 'debug',
     serializers: {
       err: pino.stdSerializers.err,
+      // Alias: many call sites log the Error object under `error`. Without this,
+      // pino serializes it to `{}` (message/stack are non-enumerable on Error).
+      // The std err serializer passes non-Error values (e.g. strings) through unchanged.
+      error: pino.stdSerializers.err,
       req: pino.stdSerializers.req,
       res: pino.stdSerializers.res,
     },

@@ -27,6 +27,12 @@ import {
 interface UseSpeechTranscriptionOptions extends StartSpeechOptions {
   /** If true, automatically request permissions on first `start()`. */
   autoRequestPermissions?: boolean;
+  /**
+   * Fired once per session when the native module finalises (VAD auto-stop,
+   * manual stop, or recognizer final). `audioPath` is present when recording
+   * was enabled — the caller uses it to run server-side Whisper transcription.
+   */
+  onFinal?: (payload: { text: string; audioPath?: string }) => void;
 }
 
 interface UseSpeechTranscriptionReturn {
@@ -61,7 +67,10 @@ export function useSpeechTranscription(
 
     const teardown = addSpeechListeners({
       'AILSpeech.partial': ({ text }) => setTranscript(text),
-      'AILSpeech.final': ({ text }) => setTranscript(text),
+      'AILSpeech.final': ({ text, audioPath }) => {
+        if (text) setTranscript(text);
+        optsRef.current.onFinal?.({ text, audioPath });
+      },
       'AILSpeech.state': ({ state: s }) => setState(s),
       'AILSpeech.volume': ({ level }) => {
         volumeRef.current = level;
@@ -85,7 +94,12 @@ export function useSpeechTranscription(
 
   const start = useCallback(async (override?: StartSpeechOptions) => {
     if (!AILSpeech.isSupported) {
-      setError({ code: 'E_RECOGNIZER_UNAVAILABLE', message: 'Not supported on this platform.' });
+      setError({
+        code: 'E_RECOGNIZER_UNAVAILABLE',
+        message:
+          'Speech module not found in this build. Rebuild the app natively ' +
+          '(run-android / run-ios) — a JS reload is not enough after adding a native module.',
+      });
       return;
     }
     setError(null);

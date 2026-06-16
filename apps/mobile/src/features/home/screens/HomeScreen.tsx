@@ -2,16 +2,17 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
+import Icon from 'react-native-vector-icons/Ionicons';
 import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '@hooks/useTheme';
 import { useAuthStore } from '@stores/authStore';
 import { GlassCard } from '@components/ui/GlassCard';
 
-const ACTIONS: { key: string; title: string; subtitle: string }[] = [
-  { key: 'chat',      title: 'Start a Chat',     subtitle: 'Ask anything' },
-  { key: 'note',      title: 'Capture a Note',   subtitle: 'Save to memory' },
-  { key: 'task',      title: 'Create a Task',    subtitle: 'Plan your day' },
-  { key: 'voice',     title: 'Voice Command',    subtitle: 'Hands-free' },
+const ACTIONS: { key: string; title: string; subtitle: string; icon: string }[] = [
+  { key: 'chat',      title: 'Start a Chat',     subtitle: 'Ask anything',    icon: 'chatbubble-ellipses' },
+  { key: 'note',      title: 'Capture a Note',   subtitle: 'Save to memory',  icon: 'document-text' },
+  { key: 'task',      title: 'Create a Task',    subtitle: 'Plan your day',   icon: 'checkbox' },
+  { key: 'voice',     title: 'Voice Command',    subtitle: 'Hands-free',      icon: 'mic' },
 ];
 
 const ROUTE_FOR: Record<string, string> = {
@@ -49,8 +50,8 @@ export function HomeScreen() {
                 style={styles.tryPremiumWrap}
               >
                 <View style={[styles.tryPremiumInner, { backgroundColor: theme.colors.surface }]}>
-                  <Text style={styles.tryPremiumText}>Try Premium</Text>
-                  <PlusIcon />
+                  <Text style={[styles.tryPremiumText, { color: theme.colors.heading }]}>Try Premium</Text>
+                  <Icon name="add" size={14} color={theme.colors.heading} />
                 </View>
               </LinearGradient>
             </TouchableOpacity>
@@ -102,8 +103,8 @@ export function HomeScreen() {
               >
                 <GlassCard borderRadius={18} style={{ flex: 1 }}>
                   <View style={styles.cardContent}>
-                    <View style={[styles.cardDotOuter, { backgroundColor: 'rgba(139,0,255,0.18)' }]}>
-                      <View style={[styles.cardDotInner, { backgroundColor: theme.colors.accent }]} />
+                    <View style={[styles.cardIconWrap, { backgroundColor: 'rgba(139,0,255,0.18)' }]}>
+                      <Icon name={a.icon} size={16} color={theme.colors.accent} />
                     </View>
                     <View style={{ marginTop: 'auto' }}>
                       <Text style={[styles.cardTitle, { color: theme.colors.heading }]}>{a.title}</Text>
@@ -128,7 +129,7 @@ export function HomeScreen() {
             >
               <Text style={styles.ctaText}>Tap here to start chatting</Text>
               <View style={styles.ctaMicWrap}>
-                <MicGlyph />
+                <Icon name="mic" size={20} color="#FFFFFF" />
               </View>
             </LinearGradient>
           </TouchableOpacity>
@@ -137,39 +138,6 @@ export function HomeScreen() {
     </View>
   );
 }
-
-function PlusIcon() {
-  return (
-    <View style={iconStyles.plus}>
-      <View style={iconStyles.plusBar} />
-      <View style={[iconStyles.plusBar, iconStyles.plusBarRot]} />
-    </View>
-  );
-}
-
-function MicGlyph() {
-  return (
-    <View style={{ width: 18, height: 18, alignItems: 'center', justifyContent: 'center' }}>
-      <View style={iconStyles.micCap} />
-      <View style={iconStyles.micStand} />
-    </View>
-  );
-}
-
-const iconStyles = StyleSheet.create({
-  plus: { width: 12, height: 12, alignItems: 'center', justifyContent: 'center' },
-  plusBar: { width: 12, height: 1.6, backgroundColor: '#FFFFFF', position: 'absolute' },
-  plusBarRot: { transform: [{ rotate: '90deg' }] },
-  micCap: {
-    width: 7, height: 9, borderRadius: 3.5, backgroundColor: '#FFFFFF',
-    position: 'absolute', top: 1,
-  },
-  micStand: {
-    width: 12, height: 6, borderBottomLeftRadius: 6, borderBottomRightRadius: 6,
-    borderWidth: 1.5, borderTopWidth: 0, borderColor: '#FFFFFF',
-    position: 'absolute', bottom: 2,
-  },
-});
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: '#000000' },
@@ -192,7 +160,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 7,
   },
-  tryPremiumText: { color: '#FFFFFF', fontSize: 13, fontWeight: '600' },
+  tryPremiumText: { fontSize: 13, fontWeight: '600' },
   avatarWrap: {},
   avatar: { width: 36, height: 36, borderRadius: 18 },
   avatarInitial: { color: '#FFFFFF', fontWeight: '700', fontSize: 15 },
@@ -224,11 +192,10 @@ const styles = StyleSheet.create({
     aspectRatio: 1.05,
   },
   cardContent: { flex: 1, justifyContent: 'space-between', minHeight: 100 },
-  cardDotOuter: {
+  cardIconWrap: {
     width: 28, height: 28, borderRadius: 14,
     alignItems: 'center', justifyContent: 'center',
   },
-  cardDotInner: { width: 12, height: 12, borderRadius: 6 },
   cardTitle: { fontSize: 14, fontWeight: '600' },
   cardSubtitle: { fontSize: 11, marginTop: 2 },
 

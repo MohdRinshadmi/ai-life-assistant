@@ -1,0 +1,2 @@
+CREATE EXTENSION IF NOT EXISTS vector;--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS "knowledge_items_embedding_hnsw_idx" ON "knowledge_items" USING hnsw ("embedding" vector_cosine_ops) WITH (m = 16, ef_construction = 64);

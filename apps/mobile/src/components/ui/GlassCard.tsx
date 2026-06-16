@@ -40,5 +40,7 @@ export function GlassCard({ children, style, borderRadius = 18 }: Props) {
 }
 
 const styles = StyleSheet.create({
-  inner: { padding: 16, overflow: 'hidden' },
+  // flexGrow (not flex: 1) so the surface fills fixed-size cards but still
+  // hugs content when the card is sized by its content (Tasks/Notes rows).
+  inner: { flexGrow: 1, padding: 16, overflow: 'hidden' },
 });

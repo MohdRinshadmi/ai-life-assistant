@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
+import Animated, { FadeInUp, FadeOutDown } from 'react-native-reanimated';
 import { useTheme } from '@hooks/useTheme';
 import { useChat } from '../hooks/useChat';
 import { useSpeech } from '../hooks/useSpeech';
@@ -24,10 +25,16 @@ export function ChatScreen() {
   const { theme } = useTheme();
   const [autoSpeak, setAutoSpeak] = useState(false);
 
+  // Bridges the voice hook (declared first) to sendMessage (from useChat, below),
+  // breaking the speak ⇄ sendMessage circular dependency between the two hooks.
+  const sendRef = useRef<(text: string) => void>(() => {});
+
   const {
-    speak, cancelSpeech, isSpeaking, isListening, transcript,
-    clearTranscript, startListening, stopListening,
-  } = useSpeech();
+    speak, cancelSpeech, isSpeaking, isListening, isTranscribing, transcript,
+    clearTranscript, startListening, stopListening, speechError,
+  } = useSpeech({ onTranscript: (text) => sendRef.current(text) });
+
+  console.log('ChatScreen render', { autoSpeak, isSpeaking, isListening, isTranscribing });
 
   const handleMessageComplete = useCallback(
     (text: string) => { if (autoSpeak) speak(text); },
@@ -38,6 +45,8 @@ export function ChatScreen() {
     messages, isConnected, isStreaming, error, newTask,
     sendMessage, clearError, clearNewTask,
   } = useChat({ onMessageComplete: handleMessageComplete });
+
+  sendRef.current = sendMessage;
 
   const flatListRef = useRef<FlatList<UIMessage>>(null);
 
@@ -58,13 +67,12 @@ export function ChatScreen() {
     void startListening();
   }, [clearTranscript, startListening]);
 
-  const stopVoiceAndSend = useCallback(() => {
+  // Stop early. The final transcript arrives asynchronously: the recorded clip
+  // is sent to Whisper and delivered via useSpeech's `onTranscript`, which sends
+  // the message. (VAD also auto-stops when the user falls silent.)
+  const stopVoice = useCallback(() => {
     void stopListening();
-    if (transcript.trim()) {
-      sendMessage(transcript.trim());
-    }
-    clearTranscript();
-  }, [stopListening, transcript, sendMessage, clearTranscript]);
+  }, [stopListening]);
 
   return (
     <View style={styles.root}>
@@ -118,7 +126,12 @@ export function ChatScreen() {
             ref={flatListRef}
             data={messages}
             keyExtractor={(item) => item.id}
-            renderItem={({ item }) => <MessageBubble message={item} />}
+            renderItem={({ item, index }) => (
+              <MessageBubble
+                message={item}
+                animateEntry={index === messages.length - 1}
+              />
+            )}
             ListEmptyComponent={
               <View style={styles.emptyState}>
                 <Text style={[styles.emptyTitle, { color: theme.colors.heading }]}>
@@ -139,23 +152,44 @@ export function ChatScreen() {
           />
 
           {newTask && (
-            <TouchableOpacity
-              style={[styles.taskToast, { backgroundColor: theme.colors.success }]}
-              onPress={clearNewTask}
-              activeOpacity={0.85}
+            <Animated.View
+              entering={FadeInUp.springify().damping(16)}
+              exiting={FadeOutDown.duration(180)}
             >
-              <Text style={styles.taskToastText}>
-                ✓ Task created: "{newTask.title}"
-              </Text>
-            </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.taskToast, { backgroundColor: theme.colors.success }]}
+                onPress={clearNewTask}
+                activeOpacity={0.85}
+              >
+                <Text style={styles.taskToastText}>
+                  ✓ Task created: "{newTask.title}"
+                </Text>
+              </TouchableOpacity>
+            </Animated.View>
           )}
 
           {error && (
-            <View style={[styles.errorBanner, { backgroundColor: theme.colors.error }]}>
+            <Animated.View
+              entering={FadeInUp.springify().damping(16)}
+              exiting={FadeOutDown.duration(180)}
+              style={[styles.errorBanner, { backgroundColor: theme.colors.error }]}
+            >
               <Text style={styles.errorText} onPress={clearError}>
                 {error} — tap to dismiss
               </Text>
-            </View>
+            </Animated.View>
+          )}
+
+          {speechError && (
+            <Animated.View
+              entering={FadeInUp.springify().damping(16)}
+              exiting={FadeOutDown.duration(180)}
+              style={[styles.errorBanner, { backgroundColor: theme.colors.error }]}
+            >
+              <Text style={styles.errorText} onPress={clearTranscript}>
+                🎤 {speechError} — tap to dismiss
+              </Text>
+            </Animated.View>
           )}
 
           <ChatInput
@@ -171,7 +205,7 @@ export function ChatScreen() {
       </SafeAreaView>
 
       {/* ───────── Voice Listening Overlay ───────── */}
-      {isListening && (
+      {(isListening || isTranscribing) && (
         <View style={StyleSheet.absoluteFill}>
           <NeonEdgeFrame thickness={2.5} radius={36}>
             <SafeAreaView style={styles.flex} edges={['top', 'bottom']}>
@@ -200,19 +234,20 @@ export function ChatScreen() {
                 showsVerticalScrollIndicator={false}
               >
                 <Text style={styles.overlayTranscript}>
-                  {transcript || 'Listening for your voice…'}
+                  {transcript ||
+                    (isTranscribing ? 'Transcribing…' : 'Listening for your voice…')}
                 </Text>
               </ScrollView>
 
               {/* footer: status + mic orb */}
               <View style={styles.overlayFooter}>
                 <Text style={[styles.overlayStatus, { color: theme.colors.subtle }]}>
-                  Listening...
+                  {isTranscribing ? 'Transcribing…' : 'Listening...'}
                 </Text>
                 <MicOrb
                   size={88}
-                  active
-                  onPress={stopVoiceAndSend}
+                  active={isListening}
+                  onPress={stopVoice}
                 />
               </View>
             </SafeAreaView>

@@ -80,7 +80,7 @@ export const knowledgeRepository = {
    *
    * Why raw SQL here instead of Drizzle's ORM layer?
    * Drizzle doesn't support custom pg operators like <=> natively yet.
-   * The HNSW index (created in 0002_knowledge_items.sql) makes this O(log n).
+   * The HNSW index (created in 0001_knowledge_hnsw.sql) makes this O(log n).
    *
    * similarity = 1 - cosine_distance (ranges 0→1, 1 = identical)
    * threshold = 0.70 means "at least 70% semantically similar"

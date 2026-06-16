@@ -1,6 +1,7 @@
 import Foundation
 import Speech
 import AVFoundation
+import QuartzCore
 import React
 
 /// AILSpeech
@@ -43,6 +44,7 @@ final class AILSpeech: RCTEventEmitter, SFSpeechRecognizerDelegate {
         case volume       = "AILSpeech.volume"
         case error        = "AILSpeech.error"
         case availability = "AILSpeech.availability"
+        case vad          = "AILSpeech.vad"
     }
 
     // MARK: - State (touched only on stateQueue)
@@ -54,6 +56,29 @@ final class AILSpeech: RCTEventEmitter, SFSpeechRecognizerDelegate {
     private var isRunning = false
     private var hasListeners = false
     private var lastFinalTranscript: String?
+
+    // MARK: - Recording (for server-side Whisper transcription)
+    /// When `record` is requested, every captured buffer is also written to this
+    /// WAV file. Its path is reported on the `final` event so JS can upload it to
+    /// the backend `/voice/transcribe` (Whisper) endpoint.
+    private var audioFile: AVAudioFile?
+    private var recordingURL: URL?
+    /// Guards against emitting more than one `final` per session (SFSpeech final
+    /// vs. our recording-fallback final).
+    private var didEmitFinal = false
+
+    // MARK: - Voice Activity Detection (touched on the audio thread only)
+    private var vadEnabled = false
+    private var silenceTimeoutMs = 1500
+    private var minSpeechMs = 300
+    private var maxDurationMs = 30000
+    /// Normalised RMS (0–1) above which a frame counts as speech.
+    private var speechThreshold: Float = 0.10
+    private var sessionStartTime: CFTimeInterval = 0
+    private var lastVoiceTime: CFTimeInterval = 0
+    private var hasDetectedSpeech = false
+    private var isSpeaking = false
+    private var vadStopRequested = false
 
     // MARK: - RN boilerplate
 
@@ -233,14 +258,50 @@ final class AILSpeech: RCTEventEmitter, SFSpeechRecognizerDelegate {
             let input = engine.inputNode
             let format = input.outputFormat(forBus: 0)
 
+            // 5a. Optional recording. When enabled we tee the captured buffers
+            // into a WAV file (same PCM format as the tap, so no conversion) and
+            // hand its path to JS on `final` for server-side Whisper transcription.
+            self.didEmitFinal = false
+            self.audioFile = nil
+            self.recordingURL = nil
+            if (options["record"] as? Bool) == true {
+                let url = FileManager.default.temporaryDirectory
+                    .appendingPathComponent("ail-rec-\(UUID().uuidString).wav")
+                do {
+                    self.audioFile = try AVAudioFile(forWriting: url, settings: format.settings)
+                    self.recordingURL = url
+                } catch {
+                    // Best-effort: recognition still works without the recording.
+                    self.audioFile = nil
+                    self.recordingURL = nil
+                }
+            }
+
+            // 5b. VAD config + state. VAD watches input energy and auto-stops the
+            // utterance once the user falls silent — see `runVad`.
+            self.vadEnabled = (options["vad"] as? Bool) ?? false
+            self.silenceTimeoutMs = (options["silenceTimeoutMs"] as? NSNumber)?.intValue ?? 1500
+            self.minSpeechMs = (options["minSpeechMs"] as? NSNumber)?.intValue ?? 300
+            self.maxDurationMs = (options["maxDurationMs"] as? NSNumber)?.intValue ?? 30000
+            self.hasDetectedSpeech = false
+            self.isSpeaking = false
+            self.vadStopRequested = false
+            self.sessionStartTime = CACurrentMediaTime()
+            self.lastVoiceTime = self.sessionStartTime
+
             // 6. Install tap. Buffer size 1024 ≈ 23ms at 44.1kHz — small
             // enough for snappy partials, large enough not to thrash CPU.
             input.installTap(onBus: 0, bufferSize: 1024, format: format) { [weak self] buffer, _ in
-                // This closure runs on a private audio thread. Two things only:
+                // This closure runs on a private audio thread:
                 //  - append to recognizer (lock-free internally)
-                //  - compute volume and emit to JS (best-effort, no allocations in hot path)
-                self?.recognitionRequest?.append(buffer)
-                self?.emitVolume(from: buffer)
+                //  - tee to the recording file (best-effort)
+                //  - compute volume / run VAD (no allocations in hot path)
+                guard let self = self else { return }
+                self.recognitionRequest?.append(buffer)
+                if let file = self.audioFile {
+                    try? file.write(from: buffer)
+                }
+                self.processAudioBuffer(buffer)
             }
 
             engine.prepare()
@@ -261,7 +322,7 @@ final class AILSpeech: RCTEventEmitter, SFSpeechRecognizerDelegate {
                         let text = result.bestTranscription.formattedString
                         if result.isFinal {
                             self.lastFinalTranscript = text
-                            self.emit(.final, ["text": text, "isFinal": true])
+                            self.emitFinal(text: text)
                             self.cleanupSync(reason: nil)
                         } else {
                             self.emit(.partial, ["text": text, "isFinal": false])
@@ -360,6 +421,23 @@ final class AILSpeech: RCTEventEmitter, SFSpeechRecognizerDelegate {
         if let reason = reason {
             emit(.error, ["code": reason.rawValue, "message": reason.message])
         }
+
+        // Recording recovery: if we were recording and the recognizer never
+        // produced a final (e.g. it failed), still surface the audio path so the
+        // caller can fall back to server-side Whisper. Skipped on cancel/teardown
+        // (reason != nil), where the user abandoned the utterance.
+        if reason == nil, !didEmitFinal, recordingURL != nil {
+            emitFinal(text: lastFinalTranscript ?? "")
+        }
+
+        // Reset recording + VAD state for the next session.
+        audioFile = nil
+        recordingURL = nil
+        vadEnabled = false
+        vadStopRequested = false
+        hasDetectedSpeech = false
+        isSpeaking = false
+
         emit(.state, ["state": "idle"])
     }
 
@@ -368,12 +446,11 @@ final class AILSpeech: RCTEventEmitter, SFSpeechRecognizerDelegate {
         sendEvent(withName: event.rawValue, body: body)
     }
 
-    /// Compute a normalised 0–1 RMS volume for the supplied buffer.
-    /// Useful for waveform UIs. Done on the audio thread — keep it cheap.
-    private func emitVolume(from buffer: AVAudioPCMBuffer) {
-        guard hasListeners,
-              let channelData = buffer.floatChannelData?[0]
-        else { return }
+    /// Compute a normalised 0–1 RMS level for the buffer, emit it as a volume
+    /// event (for waveform UIs), and feed it to the VAD. Runs on the audio
+    /// thread — keep it cheap and allocation-free in the hot path.
+    private func processAudioBuffer(_ buffer: AVAudioPCMBuffer) {
+        guard let channelData = buffer.floatChannelData?[0] else { return }
         let frameLength = Int(buffer.frameLength)
         if frameLength == 0 { return }
 
@@ -386,8 +463,80 @@ final class AILSpeech: RCTEventEmitter, SFSpeechRecognizerDelegate {
         let rms = sqrtf(sumSq / Float(frameLength))
         // RMS of speech is roughly 0.01–0.3 in practice; clamp & scale.
         let normalised = min(1, rms * 4)
-        // Don't allocate a new dictionary if no listeners — already guarded above.
-        sendEvent(withName: Event.volume.rawValue, body: ["level": normalised])
+
+        if hasListeners {
+            sendEvent(withName: Event.volume.rawValue, body: ["level": normalised])
+        }
+
+        if vadEnabled && isRunning && !vadStopRequested {
+            runVad(level: normalised)
+        }
+    }
+
+    /// Voice Activity Detection. Tracks the last time energy crossed the speech
+    /// threshold; once the user has spoken and then stayed quiet for
+    /// `silenceTimeoutMs` (or the utterance hits `maxDurationMs`), it ends the
+    /// session — this is what "determines when the user stopped speaking".
+    /// Called on the audio thread only; the actual stop hops to `stateQueue`.
+    private func runVad(level: Float) {
+        let now = CACurrentMediaTime()
+
+        if level >= speechThreshold {
+            hasDetectedSpeech = true
+            lastVoiceTime = now
+            if !isSpeaking {
+                isSpeaking = true
+                emitVad(true)
+            }
+        } else if isSpeaking, (now - lastVoiceTime) > 0.2 {
+            isSpeaking = false
+            emitVad(false)
+        }
+
+        let elapsedMs = (now - sessionStartTime) * 1000
+        let silenceMs = (now - lastVoiceTime) * 1000
+        let endedBySilence = hasDetectedSpeech
+            && silenceMs >= Double(silenceTimeoutMs)
+            && elapsedMs >= Double(minSpeechMs)
+        let endedByMaxDuration = elapsedMs >= Double(maxDurationMs)
+
+        if endedBySilence || endedByMaxDuration {
+            vadStopRequested = true
+            requestStop()
+        }
+    }
+
+    private func emitVad(_ speaking: Bool) {
+        emit(.vad, ["speaking": speaking])
+    }
+
+    /// Gracefully end audio capture (same effect as the public `stop`), used by
+    /// the VAD auto-stop path. The recognizer then produces its final result
+    /// from the buffered audio.
+    private func requestStop() {
+        stateQueue.async { [weak self] in
+            guard let self = self, self.isRunning else { return }
+            self.audioEngine?.stop()
+            self.audioEngine?.inputNode.removeTap(onBus: 0)
+            self.recognitionRequest?.endAudio()
+            self.isRunning = false
+            self.emit(.state, ["state": "stopping"])
+        }
+    }
+
+    /// Emit a single `final` event, attaching the recorded audio path when
+    /// present. Idempotent — guards against double-final (recognizer vs. fallback).
+    private func emitFinal(text: String) {
+        if didEmitFinal { return }
+        didEmitFinal = true
+        // Flush + close the recording so the on-disk file is complete before JS
+        // reads it. (AVAudioFile finalises the header on dealloc.)
+        audioFile = nil
+        var body: [String: Any] = ["text": text, "isFinal": true]
+        if let url = recordingURL {
+            body["audioPath"] = url.absoluteString
+        }
+        emit(.final, body)
     }
 
     private func rejectErr(_ reject: RCTPromiseRejectBlock, _ err: AILSpeechError) {

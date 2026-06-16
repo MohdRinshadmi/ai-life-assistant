@@ -1,5 +1,5 @@
 import { NotFoundError } from '@shared/errors';
-import { embedText, safeEmbedText } from '@shared/services/embedding.service';
+import { safeEmbedText } from '@shared/services/gemini.service';
 import { knowledgeRepository } from './knowledge.repository';
 import { KnowledgeSearchResult } from '@ai-life/shared';
 
@@ -60,7 +60,7 @@ export const knowledgeService = {
    * Called by chat.service before each LLM call.
    *
    * Returns empty array (graceful degradation) when:
-   * - No OPENAI_API_KEY
+   * - No GEMINI_API_KEY
    * - Embedding API is down
    * - User has no knowledge items
    */
@@ -69,7 +69,7 @@ export const knowledgeService = {
     query: string,
     topK = 3
   ): Promise<KnowledgeSearchResult[]> {
-    const embedding = await safeEmbedText(query);
+    const embedding = await safeEmbedText(query, 'RETRIEVAL_QUERY');
     if (!embedding) return [];
 
     return knowledgeRepository.similaritySearch(userId, embedding, topK, 0.70);

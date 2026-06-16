@@ -53,6 +53,17 @@ react {
 }
 
 /**
+ * react-native-vector-icons — bundle icon fonts into the APK.
+ * Fonts live in the hoisted workspace-root node_modules (4 levels up),
+ * so override the default ../../node_modules path before applying.
+ */
+project.ext.vectoricons = [
+    iconFontsDir: "../../../../node_modules/react-native-vector-icons/Fonts",
+    iconFontNames: ["Ionicons.ttf"]
+]
+apply from: file("../../../../node_modules/react-native-vector-icons/fonts.gradle")
+
+/**
  * Set this to true to Run Proguard on Release builds to minify the Java bytecode.
  */
 def enableProguardInReleaseBuilds = false

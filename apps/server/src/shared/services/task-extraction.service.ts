@@ -1,8 +1,6 @@
-import Anthropic from '@anthropic-ai/sdk';
-import { config, logger } from '@config';
+import { logger } from '@config';
 import { TaskPriority } from '@ai-life/shared';
-
-const anthropic = new Anthropic({ apiKey: config.ai.anthropic.apiKey });
+import { generateText, isGeminiConfigured } from '@shared/services/gemini.service';
 
 interface ExtractedTask {
   title: string;
@@ -14,25 +12,27 @@ interface ExtractedTask {
 /**
  * Task Extraction Service
  *
- * Uses Claude Haiku (fast + cheap) to analyze a single conversation turn
+ * Uses Gemini Flash-Lite (fast + cheap) to analyze a single conversation turn
  * and determine if the user implicitly requested a task to be created.
  *
  * Why post-stream instead of tool use during streaming?
  * - Keeps the streaming pipeline simple (no buffering mid-stream)
  * - Runs as a background fire-and-forget after chat:done is emitted
- * - Haiku processes this in ~200ms — imperceptible to the user
- * - The task:created socket event arrives within ~500ms of chat:done
+ * - Flash-Lite processes this in a few hundred ms — imperceptible to the user
+ * - The task:created socket event arrives shortly after chat:done
  *
- * Why Haiku instead of Sonnet for extraction?
+ * Why Flash-Lite instead of the main chat model?
  * - This is a classification + extraction task, not generation
- * - Haiku is 10× cheaper than Sonnet and ~3× faster
- * - Quality is sufficient for structured JSON extraction
+ * - Flash-Lite is the cheapest/fastest Gemini tier — quality is sufficient
+ *   for structured JSON extraction
+ * - JSON mode (responseMimeType) constrains the decoder, so output is
+ *   guaranteed parseable — no markdown fences to strip
  */
 export async function extractTaskFromConversation(
   userMessage: string,
   assistantResponse: string
 ): Promise<ExtractedTask | null> {
-  if (!config.ai.anthropic.apiKey) return null;
+  if (!isGeminiConfigured()) return null;
 
   const today = new Date().toISOString().split('T')[0];
 
@@ -56,24 +56,19 @@ If NO task was requested, return: null
 Return ONLY the JSON object or null. No explanation.`;
 
   try {
-    const response = await anthropic.messages.create({
-      model: 'claude-haiku-4-5-20251001',
-      max_tokens: 256,
-      messages: [{ role: 'user', content: prompt }],
-    });
+    const raw = (
+      await generateText(prompt, {
+        model: 'gemini-2.5-flash-lite',
+        maxOutputTokens: 256,
+        json: true,
+      })
+    ).trim();
 
-    const raw = response.content
-      .filter((b) => b.type === 'text')
-      .map((b) => (b as { type: 'text'; text: string }).text)
-      .join('')
-      .trim();
+    if (raw === '' || raw === 'null') return null;
 
-    if (raw === 'null' || raw === '') return null;
-
-    const parsed = JSON.parse(raw) as ExtractedTask;
-
-    // Validate required fields
-    if (!parsed.title || typeof parsed.title !== 'string') return null;
+    // JSON.parse('null') is also valid JSON — handled by the falsy check
+    const parsed = JSON.parse(raw) as ExtractedTask | null;
+    if (!parsed || !parsed.title || typeof parsed.title !== 'string') return null;
 
     return {
       title: parsed.title.slice(0, 100),

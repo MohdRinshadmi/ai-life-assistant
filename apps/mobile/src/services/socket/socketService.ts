@@ -2,37 +2,39 @@ import { io, Socket } from 'socket.io-client';
 import { ServerToClientEvents, ClientToServerEvents } from '@ai-life/shared';
 import { env } from '@config';
 import { SOCKET_OPTIONS } from '@constants';
+import { useAuthStore } from '@stores/authStore';
 
 type AppSocket = Socket<ServerToClientEvents, ClientToServerEvents>;
 
 let socket: AppSocket | null = null;
 
 /**
- * Connect to the Socket.io server with a JWT access token.
+ * Connect to the Socket.io server.
  *
- * Call this once after login / on app resume if the token has changed.
- * Subsequent calls with the same token are no-ops.
+ * The JWT is supplied via a *dynamic* auth callback: socket.io invokes it on
+ * every (re)connection attempt, so each handshake sends the freshest token from
+ * the auth store — not one captured when the socket was first created. This is
+ * essential because access tokens are short-lived: a token captured at creation
+ * is often already expired by the time chat opens, and socket.io does NOT retry
+ * after a server auth-middleware rejection. When the token later refreshes,
+ * calling connectSocket() again (see useChat's [accessToken] effect) re-attempts
+ * the handshake and this callback supplies the new token.
  *
- * We force WebSocket transport to skip HTTP long-polling entirely —
- * polling is slower, burns mobile battery, and React Native's fetch
- * implementation has edge-case issues with SSE-style chunked responses.
+ * We force WebSocket transport to skip HTTP long-polling entirely — polling is
+ * slower, burns mobile battery, and React Native's fetch implementation has
+ * edge-case issues with SSE-style chunked responses.
  */
-export function connectSocket(accessToken: string): AppSocket {
-  if (socket?.connected) return socket;
-
-  // Disconnect stale socket before creating a new one (token refresh case)
-  if (socket) {
-    socket.disconnect();
-    socket = null;
+export function connectSocket(): AppSocket {
+  if (!socket) {
+    socket = io(env.socketUrl, {
+      auth: (cb) => cb({ token: useAuthStore.getState().accessToken ?? '' }),
+      transports: ['websocket'],
+      ...SOCKET_OPTIONS,
+    });
+  } else if (!socket.connected) {
+    // Re-attempt a handshake that previously failed/closed, with the current token.
+    socket.connect();
   }
-
-  // Force WebSocket transport — skip HTTP long-polling (slower, battery-hungry,
-  // and flaky with React Native's chunked-response handling).
-  socket = io(env.socketUrl, {
-    auth: { token: accessToken },
-    transports: ['websocket'],
-    ...SOCKET_OPTIONS,
-  });
 
   return socket;
 }

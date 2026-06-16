@@ -1,5 +1,14 @@
-import React, { useEffect, useRef } from 'react';
-import { View, StyleSheet, Animated, Pressable, ViewStyle } from 'react-native';
+import React, { useEffect } from 'react';
+import { View, StyleSheet, Pressable, ViewStyle } from 'react-native';
+import Animated, {
+  cancelAnimation,
+  useAnimatedStyle,
+  useSharedValue,
+  withRepeat,
+  withSequence,
+  withSpring,
+  withTiming,
+} from 'react-native-reanimated';
 import LinearGradient from 'react-native-linear-gradient';
 import { useTheme } from '@hooks/useTheme';
 
@@ -12,6 +21,10 @@ interface Props {
   style?: ViewStyle;
 }
 
+const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
+
+const PRESS_SPRING = { damping: 14, stiffness: 320 };
+
 /**
  * MicOrb — the glowing centerpiece of the voice UI.
  *
@@ -20,36 +33,57 @@ interface Props {
  *   2. Mid glow ring     — semi-translucent violet/magenta wash
  *   3. Inner gradient    — solid mic button (violet → magenta)
  *
- * Layers 1 & 2 pulse via Animated.loop when `active` is true.
+ * Layers 1 & 2 pulse via a Reanimated withRepeat loop on the UI thread while
+ * `active` is true, so the glow keeps breathing even when JS is busy
+ * (e.g. streaming transcript updates).
  */
 export function MicOrb({ size = 100, active = false, onPress, onPressIn, onPressOut, style }: Props) {
   const { theme } = useTheme();
-  const pulse = useRef(new Animated.Value(1)).current;
-  const glowOpacity = useRef(new Animated.Value(active ? 1 : 0.7)).current;
+  const pulse = useSharedValue(1);
+  const glow = useSharedValue(active ? 1 : 0.7);
+  const pressScale = useSharedValue(1);
 
   useEffect(() => {
     if (active) {
-      Animated.loop(
-        Animated.parallel([
-          Animated.sequence([
-            Animated.timing(pulse, { toValue: 1.18, duration: 900, useNativeDriver: true }),
-            Animated.timing(pulse, { toValue: 1, duration: 900, useNativeDriver: true }),
-          ]),
-          Animated.sequence([
-            Animated.timing(glowOpacity, { toValue: 1, duration: 900, useNativeDriver: true }),
-            Animated.timing(glowOpacity, { toValue: 0.55, duration: 900, useNativeDriver: true }),
-          ]),
-        ])
-      ).start();
+      pulse.value = withRepeat(
+        withSequence(
+          withTiming(1.18, { duration: 900 }),
+          withTiming(1, { duration: 900 })
+        ),
+        -1
+      );
+      glow.value = withRepeat(
+        withSequence(
+          withTiming(1, { duration: 900 }),
+          withTiming(0.55, { duration: 900 })
+        ),
+        -1
+      );
     } else {
-      pulse.stopAnimation();
-      glowOpacity.stopAnimation();
-      Animated.parallel([
-        Animated.timing(pulse, { toValue: 1, duration: 200, useNativeDriver: true }),
-        Animated.timing(glowOpacity, { toValue: 0.7, duration: 200, useNativeDriver: true }),
-      ]).start();
+      cancelAnimation(pulse);
+      cancelAnimation(glow);
+      pulse.value = withTiming(1, { duration: 200 });
+      glow.value = withTiming(0.7, { duration: 200 });
     }
-  }, [active, pulse, glowOpacity]);
+    return () => {
+      cancelAnimation(pulse);
+      cancelAnimation(glow);
+    };
+  }, [active, pulse, glow]);
+
+  const outerStyle = useAnimatedStyle(() => ({
+    opacity: glow.value * 0.35,
+    transform: [{ scale: pulse.value }],
+  }));
+
+  const midStyle = useAnimatedStyle(() => ({
+    opacity: glow.value * 0.6,
+    transform: [{ scale: pulse.value }],
+  }));
+
+  const pressStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: pressScale.value }],
+  }));
 
   const outer = size * 2.6;
   const mid = size * 1.6;
@@ -60,11 +94,8 @@ export function MicOrb({ size = 100, active = false, onPress, onPressIn, onPress
       <Animated.View
         style={[
           styles.absCenter,
-          {
-            width: outer, height: outer, borderRadius: outer / 2,
-            opacity: Animated.multiply(glowOpacity, 0.35),
-            transform: [{ scale: pulse }],
-          },
+          { width: outer, height: outer, borderRadius: outer / 2 },
+          outerStyle,
         ]}
         pointerEvents="none"
       >
@@ -79,11 +110,8 @@ export function MicOrb({ size = 100, active = false, onPress, onPressIn, onPress
       <Animated.View
         style={[
           styles.absCenter,
-          {
-            width: mid, height: mid, borderRadius: mid / 2,
-            opacity: Animated.multiply(glowOpacity, 0.6),
-            transform: [{ scale: pulse }],
-          },
+          { width: mid, height: mid, borderRadius: mid / 2 },
+          midStyle,
         ]}
         pointerEvents="none"
       >
@@ -95,16 +123,20 @@ export function MicOrb({ size = 100, active = false, onPress, onPressIn, onPress
       </Animated.View>
 
       {/* Solid mic button */}
-      <Pressable
+      <AnimatedPressable
         onPress={onPress}
-        onPressIn={onPressIn}
-        onPressOut={onPressOut}
-        style={({ pressed }) => [
+        onPressIn={() => {
+          pressScale.value = withSpring(0.94, PRESS_SPRING);
+          onPressIn?.();
+        }}
+        onPressOut={() => {
+          pressScale.value = withSpring(1, PRESS_SPRING);
+          onPressOut?.();
+        }}
+        style={[
           styles.button,
-          {
-            width: size, height: size, borderRadius: size / 2,
-            transform: [{ scale: pressed ? 0.96 : 1 }],
-          },
+          { width: size, height: size, borderRadius: size / 2 },
+          pressStyle,
         ]}
       >
         <LinearGradient
@@ -113,7 +145,7 @@ export function MicOrb({ size = 100, active = false, onPress, onPressIn, onPress
           style={[StyleSheet.absoluteFill, { borderRadius: size / 2 }]}
         />
         <MicIcon size={size * 0.42} />
-      </Pressable>
+      </AnimatedPressable>
     </View>
   );
 }

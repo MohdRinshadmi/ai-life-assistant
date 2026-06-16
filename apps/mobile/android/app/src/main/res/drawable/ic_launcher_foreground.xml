@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Violet → magenta brand orb -->
+    <path android:pathData="M54,28 a26,26 0 1 1 0,52 a26,26 0 1 1 0,-52 z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:type="linear"
+                android:startX="32"
+                android:startY="32"
+                android:endX="78"
+                android:endY="78"
+                android:startColor="#8B00FF"
+                android:endColor="#FF008C" />
+        </aapt:attr>
+    </path>
+
+    <!-- Mic capsule -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M54,38 a5.5,5.5 0 0 1 5.5,5.5 v9 a5.5,5.5 0 0 1 -11,0 v-9 a5.5,5.5 0 0 1 5.5,-5.5 z" />
+
+    <!-- Mic cradle -->
+    <path
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="3"
+        android:strokeLineCap="round"
+        android:fillColor="#00000000"
+        android:pathData="M44.5,50.5 v2 a9.5,9.5 0 0 0 19,0 v-2" />
+
+    <!-- Mic stem -->
+    <path
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="3"
+        android:strokeLineCap="round"
+        android:fillColor="#00000000"
+        android:pathData="M54,62 v5" />
+</vector>

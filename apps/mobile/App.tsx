@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { StatusBar } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { ThemeProvider } from '@hooks/useTheme';
 import { RootNavigator } from '@navigation/RootNavigator';
@@ -27,6 +28,7 @@ export default function App() {
   return (
     <SafeAreaProvider>
       <ThemeProvider>
+        <StatusBar barStyle="light-content" backgroundColor="#000000" />
         <AppContent />
       </ThemeProvider>
     </SafeAreaProvider>

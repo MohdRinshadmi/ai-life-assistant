@@ -39,12 +39,18 @@ export function createSocketServer(httpServer: HTTPServer): TypedSocketServer {
   io.use((socket, next) => {
     try {
       const token = socket.handshake.auth?.token as string | undefined;
-      if (!token) return next(new Error('Authentication token missing'));
+      if (!token) {
+        logger.warn({ msg: 'Socket handshake rejected: token missing', socketId: socket.id });
+        return next(new Error('Authentication token missing'));
+      }
       const decoded = verifyAccessToken(token);
       socket.data.userId = decoded.userId;
       socket.data.email = decoded.email;
       next();
-    } catch {
+    } catch (err) {
+      // Log the reason — otherwise a rejected handshake is invisible server-side
+      // and looks identical to a client that never connected.
+      logger.warn({ msg: 'Socket handshake rejected: invalid/expired token', socketId: socket.id, err });
       next(new Error('Invalid or expired token'));
     }
   });

@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Task } from '@ai-life/shared';
 import { connectSocket, getSocket } from '@services/socket/socketService';
+import { apiClient } from '@services/api/client';
 import { useAuthStore } from '@stores/authStore';
 import { useChatStore, UIMessage } from '../stores/chatStore';
 import { chatService } from '../services/chatService';
@@ -100,7 +101,11 @@ export function useChat({
   useEffect(() => {
     if (!accessToken) return;
 
-    const socket = getSocket() ?? connectSocket(accessToken);
+    // connectSocket() returns the singleton and re-attempts the handshake if it
+    // had failed/closed. Because this effect is keyed on [accessToken], a token
+    // refresh re-runs it and reconnects with the new token (the socket's dynamic
+    // auth callback reads the latest token from the store on each attempt).
+    const socket = connectSocket();
 
     const {
       startAssistant,
@@ -111,6 +116,17 @@ export function useChat({
 
     const onConnect = () => setIsConnected(true);
     const onDisconnect = () => setIsConnected(false);
+
+    // socket.io does NOT retry a server auth-middleware rejection. The token was
+    // most likely stale, so force a refresh through the REST layer (any
+    // authenticated call triggers apiClient's 401→refresh, which updates the
+    // store). That token change re-runs this effect and reconnects. If the
+    // refresh token is also dead, apiClient logs out → accessToken becomes null
+    // → this effect early-returns, so there's no reconnect storm.
+    const onConnectError = () => {
+      setIsConnected(false);
+      void apiClient.get('/auth/me').catch(() => {});
+    };
 
     const onChatStart = (payload: {
       conversationId: string;
@@ -147,6 +163,7 @@ export function useChat({
 
     socket.on('connect', onConnect);
     socket.on('disconnect', onDisconnect);
+    socket.on('connect_error', onConnectError);
     socket.on('chat:start', onChatStart);
     socket.on('chat:token', onChatToken);
     socket.on('chat:done', onChatDone);
@@ -158,6 +175,7 @@ export function useChat({
     return () => {
       socket.off('connect', onConnect);
       socket.off('disconnect', onDisconnect);
+      socket.off('connect_error', onConnectError);
       socket.off('chat:start', onChatStart);
       socket.off('chat:token', onChatToken);
       socket.off('chat:done', onChatDone);
