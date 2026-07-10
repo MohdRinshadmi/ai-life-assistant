@@ -1,0 +1,129 @@
+.layout {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* ----- Sidebar (desktop) ----- */
+.layout__nav {
+  width: 220px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 20px 12px;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+}
+
+.layout__brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 12px 20px;
+}
+.layout__brand-orb {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--grad-primary);
+  box-shadow: 0 0 14px rgba(139, 0, 255, 0.7);
+}
+.layout__brand-name {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--heading);
+}
+
+.layout__link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 12px;
+  border-radius: var(--radius-lg);
+  color: var(--subtle);
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.15s ease;
+}
+.layout__link:hover {
+  color: var(--text);
+  background: var(--elevated);
+}
+.layout__link--active {
+  color: var(--primary-light);
+  background: rgba(139, 0, 255, 0.12);
+}
+
+.layout__user {
+  margin-top: auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-top: 1px solid var(--border);
+}
+.layout__avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--grad-primary);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.layout__avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.layout__user-name {
+  font-size: 13px;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.layout__content {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ----- Bottom tab bar (mobile parity, height 80 like the app) ----- */
+@media (max-width: 767px) {
+  .layout {
+    flex-direction: column-reverse;
+  }
+  .layout__nav {
+    width: 100%;
+    flex-direction: row;
+    justify-content: space-around;
+    padding: 8px 4px calc(8px + env(safe-area-inset-bottom));
+    height: 80px;
+    border-right: none;
+    border-top: 1px solid var(--border);
+  }
+  .layout__brand,
+  .layout__user {
+    display: none;
+  }
+  .layout__link {
+    flex-direction: column;
+    gap: 4px;
+    padding: 6px 10px;
+    font-size: 11px;
+    background: none !important;
+    color: var(--muted);
+  }
+  .layout__link--active {
+    color: var(--primary-light);
+  }
+}

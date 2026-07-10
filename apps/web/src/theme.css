@@ -1,0 +1,286 @@
+/* Design tokens ported from apps/mobile/src/theme (Syncra-style dark UI) */
+:root {
+  /* Brand */
+  --primary: #8b00ff;
+  --primary-light: #b566ff;
+  --primary-dark: #7000d9;
+  --accent: #ff008c;
+  --accent-light: #ff5bae;
+
+  /* Semantic */
+  --success: #10b981;
+  --warning: #f59e0b;
+  --error: #ef4444;
+  --info: #3b82f6;
+
+  /* Dark surfaces (violet-tinted) */
+  --bg: #000000;
+  --surface: #0e0816;
+  --elevated: #160c24;
+  --border: #241636;
+  --muted: #3a2a52;
+  --subtle: #9a8ab8;
+  --text: #e8e4f0;
+  --heading: #ffffff;
+
+  /* Gradients */
+  --grad-primary: linear-gradient(90deg, #8b00ff, #ff008c);
+  --grad-primary-soft: linear-gradient(90deg, #5500a8, #a8005c);
+  --grad-backdrop: linear-gradient(180deg, #000000 0%, #0e0816 50%, #000000 100%);
+  --grad-button: linear-gradient(180deg, #1a0e2e, #0e0816);
+
+  /* Radii (mobile borderRadius scale) */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 18px;
+  --radius-2xl: 24px;
+
+  /* Signature violet glow */
+  --glow: 0 8px 18px rgba(139, 0, 255, 0.5);
+
+  --font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+
+  color-scheme: dark;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--text);
+  font-size: 15px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+  background: none;
+  color: inherit;
+}
+
+input,
+textarea {
+  font-family: inherit;
+  color: var(--text);
+  background: transparent;
+  border: none;
+  outline: none;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--muted);
+}
+
+a {
+  color: var(--primary-light);
+  text-decoration: none;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--muted);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* ---------- Shared primitives ---------- */
+
+/* Full-height screen with the universal backdrop gradient */
+.screen {
+  min-height: 100%;
+  background: var(--grad-backdrop);
+}
+
+/* GlassCard: surface panel with a violet→magenta 1px gradient border */
+.glass-card {
+  position: relative;
+  border-radius: var(--radius-xl);
+  padding: 16px;
+  background:
+    linear-gradient(135deg, rgba(139, 0, 255, 0.06), rgba(255, 0, 140, 0.04)),
+    var(--surface);
+  border: 1px solid transparent;
+  background-clip: padding-box;
+}
+.glass-card::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1px;
+  background: var(--grad-primary-soft);
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+/* PillButton — gradient variant */
+.pill-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 52px;
+  padding: 0 28px;
+  border-radius: 28px;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  color: #fff;
+  background: var(--grad-primary);
+  box-shadow: var(--glow);
+  transition: transform 0.12s ease, opacity 0.15s ease;
+}
+.pill-btn:active {
+  transform: scale(0.98);
+}
+.pill-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* PillButton — outline variant */
+.pill-btn--outline {
+  background: var(--surface);
+  box-shadow: none;
+  position: relative;
+  border: 1px solid var(--muted);
+}
+
+/* Dark rounded input (auth + sheets) */
+.dark-input {
+  width: 100%;
+  height: 52px;
+  border-radius: var(--radius-lg);
+  background: var(--elevated);
+  border: 1px solid var(--border);
+  padding: 0 16px;
+  font-size: 15px;
+  transition: border-color 0.15s ease;
+}
+.dark-input:focus-within,
+.dark-input:focus {
+  border-color: var(--primary);
+}
+
+.field-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  color: var(--subtle);
+  margin-bottom: 6px;
+}
+
+/* Filter / preset chips */
+.chip {
+  height: 34px;
+  padding: 0 14px;
+  border-radius: 16px;
+  font-size: 13px;
+  font-weight: 500;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--subtle);
+  transition: all 0.15s ease;
+}
+.chip--active {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #fff;
+}
+
+/* Small status/priority badge */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 9px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: capitalize;
+}
+
+.spinner {
+  width: 22px;
+  height: 22px;
+  border: 2.5px solid var(--muted);
+  border-top-color: var(--primary-light);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Modal / sheet overlay */
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+  padding: 16px;
+}
+.sheet {
+  width: 100%;
+  max-width: 520px;
+  background: var(--elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-2xl);
+  padding: 24px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+@media (max-width: 640px) {
+  .overlay {
+    align-items: flex-end;
+    padding: 0;
+  }
+  .sheet {
+    max-width: none;
+    border-radius: var(--radius-2xl) var(--radius-2xl) 0 0;
+  }
+}
+
+.empty-state {
+  text-align: center;
+  color: var(--subtle);
+  padding: 48px 16px;
+}
+.empty-state h3 {
+  color: var(--heading);
+  font-size: 22px;
+  font-weight: 700;
+  margin-bottom: 6px;
+}

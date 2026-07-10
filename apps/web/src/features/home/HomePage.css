@@ -1,0 +1,137 @@
+.home {
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 24px 16px 40px;
+}
+
+.home__topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 28px;
+}
+
+.home__premium {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: 999px;
+  background: var(--surface);
+  border: 1px solid var(--muted);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+}
+
+.home__avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--grad-primary);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+.home__avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.home__greeting {
+  font-size: 30px;
+  font-weight: 700;
+  color: var(--heading);
+}
+
+.home__subtitle {
+  margin-top: 6px;
+  font-size: 13px;
+  color: var(--subtle);
+  max-width: 320px;
+}
+
+.home__aurora {
+  height: 110px;
+  margin: 24px 0;
+  border-radius: var(--radius-xl);
+  background:
+    linear-gradient(
+      120deg,
+      rgba(139, 0, 255, 0) 0%,
+      rgba(139, 0, 255, 0.55) 40%,
+      rgba(255, 0, 140, 0.55) 70%,
+      transparent 100%
+    ),
+    var(--surface);
+}
+
+.home__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.home__action {
+  aspect-ratio: 1.05;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-end;
+  text-align: left;
+  transition: transform 0.12s ease;
+}
+.home__action:hover {
+  transform: translateY(-2px);
+}
+
+.home__action-icon {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  width: 28px;
+  height: 28px;
+  border-radius: 9px;
+  background: rgba(139, 0, 255, 0.18);
+  color: var(--accent-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.home__action-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.home__action-subtitle {
+  font-size: 11px;
+  color: var(--subtle);
+  margin-top: 2px;
+}
+
+.home__cta {
+  width: 100%;
+  height: 56px;
+  margin-top: 24px;
+  justify-content: space-between;
+  padding: 0 8px 0 24px;
+}
+
+.home__cta-mic {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

@@ -1,0 +1,99 @@
+.auth {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 20px;
+}
+
+.auth__hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  max-width: 420px;
+  width: 100%;
+}
+
+.auth__tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 36px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--text);
+}
+.auth__tag-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+.auth__title {
+  margin-top: 18px;
+  font-size: 38px;
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--text);
+}
+
+.auth__subtitle {
+  margin-top: 12px;
+  font-size: 14px;
+  color: var(--subtle);
+}
+
+.auth__dots {
+  display: flex;
+  gap: 6px;
+  margin-top: 22px;
+}
+.auth__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--muted);
+}
+.auth__dot--active {
+  width: 18px;
+  background: var(--primary-light);
+}
+
+.auth__form {
+  width: 100%;
+  max-width: 420px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 32px;
+}
+
+.auth__error {
+  color: var(--error);
+  font-size: 13px;
+  text-align: center;
+}
+
+.auth__actions {
+  width: 100%;
+  max-width: 420px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.auth__switch {
+  margin-top: 18px;
+  font-size: 13px;
+  color: var(--subtle);
+  text-align: center;
+}
