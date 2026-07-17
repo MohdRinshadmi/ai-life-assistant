@@ -9,21 +9,22 @@ import {
   ScrollView,
   TouchableOpacity,
   Alert,
-  TextInput,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import LinearGradient from 'react-native-linear-gradient';
+import { isAxiosError } from 'axios';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useTheme } from '@hooks/useTheme';
-import { PillButton } from '@components/ui/PillButton';
-import { MicOrb } from '@components/ui/MicOrb';
+import { MicOrb, PillButton, ScreenContainer, TextField } from '@components/ui';
 import { authService } from '../services/authService';
 import { env } from '@config';
+import { logger } from '@utils/logger';
+import { spacing } from '@theme';
 import { VALIDATION } from '@ai-life/shared';
 import { AuthStackParamList } from '@navigation/AuthNavigator';
 
 type RegisterNavProp = NativeStackNavigationProp<AuthStackParamList, 'Register'>;
+
+const SAFE_EDGES: React.ComponentProps<typeof ScreenContainer>['edges'] = ['top', 'bottom'];
 
 export function RegisterScreen() {
   const { theme } = useTheme();
@@ -62,15 +63,15 @@ export function RegisterScreen() {
         password,
         displayName: displayName.trim(),
       });
-    } catch (error: any) {
+    } catch (error) {
       // Diagnostic: distinguish "couldn't reach the server" from "server said no".
       let message: string;
-      if (error.response) {
+      if (isAxiosError(error) && error.response) {
         // Server responded with an error status (4xx/5xx) — show its message.
         message =
           error.response.data?.error?.message ||
           `Server error (${error.response.status})`;
-      } else if (error.request) {
+      } else if (isAxiosError(error) && error.request) {
         // Request was sent but no response — network/connectivity problem.
         message =
           `Can't reach the server at ${env.apiBaseUrl}.\n\n` +
@@ -78,13 +79,15 @@ export function RegisterScreen() {
           `your phone is on the same Wi-Fi.`;
       } else {
         // Error thrown before the request was even made.
-        message = error.message || 'Registration failed. Please try again.';
+        message =
+          (error instanceof Error && error.message) ||
+          'Registration failed. Please try again.';
       }
-      console.log('🛑 Register error →', {
+      logger.error('Register error', {
         baseURL: env.apiBaseUrl,
-        code: error.code,
-        status: error.response?.status,
-        message: error.message,
+        code: isAxiosError(error) ? error.code : undefined,
+        status: isAxiosError(error) ? error.response?.status : undefined,
+        message: error instanceof Error ? error.message : String(error),
       });
       Alert.alert('Registration failed', message);
     } finally {
@@ -93,123 +96,96 @@ export function RegisterScreen() {
   };
 
   return (
-    <View style={styles.root}>
+    <ScreenContainer edges={SAFE_EDGES}>
       <StatusBar barStyle="light-content" backgroundColor="#000000" />
-      <LinearGradient
-        colors={theme.colors.gradients.backdrop as unknown as string[]}
-        locations={[0, 0.45, 1]}
-        style={StyleSheet.absoluteFill}
-      />
 
-      <SafeAreaView style={styles.flex} edges={['top', 'bottom']}>
-        <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-          style={styles.flex}
-        >
-          <ScrollView
-            contentContainerStyle={styles.scrollContent}
-            keyboardShouldPersistTaps="handled"
-            showsVerticalScrollIndicator={false}
-          >
-            <View style={styles.hero}>
-              <MicOrb size={64} active={false} />
-              <Text style={styles.title}>Create your account</Text>
-              <Text style={styles.subtitle}>
-                A few seconds to set up your AI assistant
-              </Text>
-            </View>
-
-            <View style={styles.form}>
-              <DarkField
-                placeholder="Display name"
-                value={displayName}
-                onChangeText={(t) => { setDisplayName(t); if (errors.displayName) setErrors({ ...errors, displayName: undefined }); }}
-                error={errors.displayName}
-                textContentType="name"
-              />
-              <DarkField
-                placeholder="Email"
-                value={email}
-                onChangeText={(t) => { setEmail(t); if (errors.email) setErrors({ ...errors, email: undefined }); }}
-                error={errors.email}
-                keyboardType="email-address"
-                autoCapitalize="none"
-                textContentType="emailAddress"
-              />
-              <DarkField
-                placeholder="Password (min 8 chars)"
-                value={password}
-                onChangeText={(t) => { setPassword(t); if (errors.password) setErrors({ ...errors, password: undefined }); }}
-                error={errors.password}
-                secureTextEntry
-                textContentType="newPassword"
-              />
-              <DarkField
-                placeholder="Confirm password"
-                value={confirmPassword}
-                onChangeText={(t) => { setConfirmPassword(t); if (errors.confirmPassword) setErrors({ ...errors, confirmPassword: undefined }); }}
-                error={errors.confirmPassword}
-                secureTextEntry
-                textContentType="newPassword"
-              />
-            </View>
-
-            <View style={styles.actions}>
-              <PillButton title="Create Account" variant="gradient" loading={loading} onPress={handleRegister} />
-
-              <View style={styles.footerRow}>
-                <Text style={[styles.footerText, { color: theme.colors.subtle }]}>Already have an account? </Text>
-                <TouchableOpacity onPress={() => navigation.goBack()}>
-                  <Text style={[styles.footerText, { color: theme.colors.heading, fontWeight: '600' }]}>
-                    Sign In
-                  </Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          </ScrollView>
-        </KeyboardAvoidingView>
-      </SafeAreaView>
-    </View>
-  );
-}
-
-function DarkField(props: React.ComponentProps<typeof TextInput> & { error?: string }) {
-  const { theme } = useTheme();
-  const { error, ...inputProps } = props;
-  return (
-    <View>
-      <View
-        style={[
-          styles.inputWrap,
-          {
-            backgroundColor: theme.colors.surface,
-            borderColor: error ? theme.colors.error : theme.colors.border,
-          },
-        ]}
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        style={styles.flex}
       >
-        <TextInput
-          {...inputProps}
-          placeholderTextColor={theme.colors.subtle}
-          style={[styles.input, { color: theme.colors.heading }]}
-        />
-      </View>
-      {error && <Text style={[styles.errorText, { color: theme.colors.error }]}>{error}</Text>}
-    </View>
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={styles.hero}>
+            <MicOrb size={64} active={false} />
+            <Text style={styles.title}>
+              Create your{' '}
+              <Text style={styles.titleInk}>account</Text>
+            </Text>
+            <Text style={styles.subtitle}>
+              A few seconds to set up your AI assistant
+            </Text>
+          </View>
+
+          <View style={styles.form}>
+            <TextField
+              placeholder="Display name"
+              value={displayName}
+              onChangeText={(t) => { setDisplayName(t); if (errors.displayName) setErrors({ ...errors, displayName: undefined }); }}
+              error={errors.displayName}
+              textContentType="name"
+            />
+            <TextField
+              placeholder="Email"
+              value={email}
+              onChangeText={(t) => { setEmail(t); if (errors.email) setErrors({ ...errors, email: undefined }); }}
+              error={errors.email}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              textContentType="emailAddress"
+            />
+            <TextField
+              placeholder="Password (min 8 chars)"
+              value={password}
+              onChangeText={(t) => { setPassword(t); if (errors.password) setErrors({ ...errors, password: undefined }); }}
+              error={errors.password}
+              secureTextEntry
+              textContentType="newPassword"
+            />
+            <TextField
+              placeholder="Confirm password"
+              value={confirmPassword}
+              onChangeText={(t) => { setConfirmPassword(t); if (errors.confirmPassword) setErrors({ ...errors, confirmPassword: undefined }); }}
+              error={errors.confirmPassword}
+              secureTextEntry
+              textContentType="newPassword"
+            />
+          </View>
+
+          <View style={styles.actions}>
+            <PillButton title="Create Account" variant="gradient" loading={loading} onPress={handleRegister} />
+
+            <View style={styles.footerRow}>
+              <Text style={[styles.footerText, { color: theme.colors.subtle }]}>Already have an account? </Text>
+              <TouchableOpacity
+                onPress={() => navigation.goBack()}
+                accessibilityRole="button"
+                accessibilityLabel="Sign in"
+              >
+                <Text style={[styles.footerText, styles.footerLink, { color: theme.colors.heading }]}>
+                  Sign In
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </ScreenContainer>
   );
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#000000' },
   flex: { flex: 1 },
-  scrollContent: { flexGrow: 1, paddingHorizontal: 28, paddingBottom: 24 },
-  hero: { alignItems: 'center', paddingTop: 24, gap: 14, marginBottom: 28 },
-  title: { color: '#FFFFFF', fontSize: 26, fontWeight: '700', textAlign: 'center' },
+  scrollContent: { flexGrow: 1, paddingHorizontal: 28, paddingBottom: spacing.xl },
+  hero: { alignItems: 'center', paddingTop: spacing.xl, gap: 14, marginBottom: 28 },
+  title: { color: '#FFFFFF', fontSize: 30, fontWeight: '800', letterSpacing: -0.8, textAlign: 'center' },
+  titleInk: { color: '#FF5BAE' },
   subtitle: { color: '#9A8AB8', fontSize: 14, textAlign: 'center' },
-  form: { gap: 12 },
-  inputWrap: { borderWidth: 1, borderRadius: 16, paddingHorizontal: 16, height: 52, justifyContent: 'center' },
-  input: { fontSize: 15, paddingVertical: 0 },
-  errorText: { fontSize: 12, marginTop: 4, marginLeft: 4 },
+  form: { gap: spacing.md },
   actions: { gap: 18, marginTop: 28 },
   footerRow: { flexDirection: 'row', justifyContent: 'center' },
   footerText: { fontSize: 14 },
+  footerLink: { fontWeight: '600' },
 });

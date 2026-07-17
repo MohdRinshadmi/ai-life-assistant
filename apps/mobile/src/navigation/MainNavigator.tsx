@@ -27,6 +27,35 @@ const TAB_ICONS: Record<keyof MainTabParamList, { active: string; inactive: stri
   Settings: { active: 'settings', inactive: 'settings-outline' },
 };
 
+interface TabBarIconProps {
+  focused: boolean;
+  color: string;
+  size: number;
+}
+
+/**
+ * Icon renderers are created once at module scope (not inside the navigator's
+ * render) so React sees a stable component identity across re-renders —
+ * avoids react/no-unstable-nested-components and needless subtree remounts.
+ */
+function makeTabIcon(routeName: keyof MainTabParamList) {
+  const icons = TAB_ICONS[routeName];
+  return function TabBarIcon({ focused, color, size }: TabBarIconProps) {
+    return <Icon name={focused ? icons.active : icons.inactive} size={size ?? 22} color={color} />;
+  };
+}
+
+const TAB_ICON_RENDERERS: Record<
+  keyof MainTabParamList,
+  (props: TabBarIconProps) => React.JSX.Element
+> = {
+  Home: makeTabIcon('Home'),
+  Chat: makeTabIcon('Chat'),
+  Notes: makeTabIcon('Notes'),
+  Tasks: makeTabIcon('Tasks'),
+  Settings: makeTabIcon('Settings'),
+};
+
 export function MainNavigator() {
   const { theme } = useTheme();
 
@@ -34,13 +63,7 @@ export function MainNavigator() {
     <Tab.Navigator
       screenOptions={({ route }) => ({
         headerShown: false,
-        tabBarIcon: ({ focused, color, size }) => (
-          <Icon
-            name={focused ? TAB_ICONS[route.name].active : TAB_ICONS[route.name].inactive}
-            size={size ?? 22}
-            color={color}
-          />
-        ),
+        tabBarIcon: TAB_ICON_RENDERERS[route.name],
         tabBarStyle: {
           backgroundColor: theme.colors.surface,
           borderTopColor: theme.colors.border,

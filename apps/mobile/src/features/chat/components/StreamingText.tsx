@@ -40,7 +40,7 @@ interface Props {
  * messages render as a single plain <Text> so we never mount hundreds of
  * animated nodes when scrolling back through a long conversation.
  */
-export const StreamingText = memo(function StreamingText({
+export const StreamingText = memo(function StreamingTextInner({
   text,
   isStreaming,
   color,

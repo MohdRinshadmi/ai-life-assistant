@@ -16,11 +16,11 @@ export default defineConfig({
     port: 5180,
     proxy: {
       '/api': {
-        target: process.env.API_ORIGIN ?? 'http://localhost:3001',
+        target: process.env.API_ORIGIN ?? 'http://localhost:3000',
         changeOrigin: true,
       },
       '/socket.io': {
-        target: process.env.API_ORIGIN ?? 'http://localhost:3001',
+        target: process.env.API_ORIGIN ?? 'http://localhost:3000',
         ws: true,
       },
     },

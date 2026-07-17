@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
+import { Spinner } from '@/components/ui';
 import { useAuthStore } from '@/stores/authStore';
 import { authService } from '@/services/api/authService';
 import { MainLayout } from '@/layouts/MainLayout';
@@ -21,8 +22,8 @@ export function App() {
 
   if (isLoading) {
     return (
-      <div className="screen" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh' }}>
-        <span className="spinner" />
+      <div className="screen center-fill">
+        <Spinner />
       </div>
     );
   }

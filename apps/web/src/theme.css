@@ -1,4 +1,8 @@
-/* Design tokens ported from apps/mobile/src/theme (Syncra-style dark UI) */
+/*
+ * Design tokens — single source of truth for the web app.
+ * Ported from apps/mobile/src/theme (Syncra-style dark UI).
+ * Brand: deep black violet-tinted surfaces, violet→magenta gradient, Inter.
+ */
 :root {
   /* Brand */
   --primary: #8b00ff;
@@ -24,20 +28,60 @@
   --heading: #ffffff;
 
   /* Gradients */
-  --grad-primary: linear-gradient(90deg, #8b00ff, #ff008c);
+  --grad-primary: linear-gradient(90deg, var(--primary), var(--accent));
   --grad-primary-soft: linear-gradient(90deg, #5500a8, #a8005c);
-  --grad-backdrop: linear-gradient(180deg, #000000 0%, #0e0816 50%, #000000 100%);
-  --grad-button: linear-gradient(180deg, #1a0e2e, #0e0816);
+  /* Ambient light field: violet nebula top-left, magenta bloom right, violet floor */
+  --grad-backdrop:
+    radial-gradient(1100px 700px at 12% -10%, rgba(139, 0, 255, 0.2), transparent 60%),
+    radial-gradient(900px 600px at 105% 25%, rgba(255, 0, 140, 0.1), transparent 55%),
+    radial-gradient(1300px 900px at 50% 115%, rgba(85, 0, 168, 0.22), transparent 60%),
+    #000000;
+  /* Gradient ink for display-type accents */
+  --grad-text: linear-gradient(92deg, var(--primary-light) 0%, var(--accent-light) 100%);
 
-  /* Radii (mobile borderRadius scale) */
+  /* Spacing — 8pt grid (4px half-step) */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+
+  /* Type scale (modular, base 15) */
+  --text-xs: 11px;
+  --text-sm: 13px;
+  --text-base: 15px;
+  --text-md: 17px;
+  --text-lg: 20px;
+  --text-xl: 24px;
+  --text-2xl: 30px;
+  --text-3xl: 38px;
+  --text-display: 46px;
+
+  /* Radii */
   --radius-sm: 6px;
   --radius-md: 10px;
   --radius-lg: 14px;
   --radius-xl: 18px;
   --radius-2xl: 24px;
 
-  /* Signature violet glow */
+  /* Control heights */
+  --control-h: 44px;
+  --control-h-lg: 52px;
+
+  /* Elevation & glow */
   --glow: 0 8px 18px rgba(139, 0, 255, 0.5);
+  --glow-soft: 0 4px 24px rgba(139, 0, 255, 0.25);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.4);
+
+  /* Motion */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --dur-fast: 120ms;
+  --dur-base: 200ms;
 
   --font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 
@@ -60,7 +104,7 @@ body {
   font-family: var(--font);
   background: var(--bg);
   color: var(--text);
-  font-size: 15px;
+  font-size: var(--text-base);
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
 }
@@ -92,6 +136,23 @@ a {
   text-decoration: none;
 }
 
+/* Accessibility floor: visible keyboard focus everywhere */
+:focus-visible {
+  outline: 2px solid var(--primary-light);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
@@ -104,183 +165,65 @@ a {
   background: transparent;
 }
 
-/* ---------- Shared primitives ---------- */
+/* Screen-reader-only utility */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
 
-/* Full-height screen with the universal backdrop gradient */
+/* Full-height screen with the universal ambient backdrop */
 .screen {
   min-height: 100%;
   background: var(--grad-backdrop);
 }
 
-/* GlassCard: surface panel with a violet→magenta 1px gradient border */
-.glass-card {
-  position: relative;
-  border-radius: var(--radius-xl);
-  padding: 16px;
-  background:
-    linear-gradient(135deg, rgba(139, 0, 255, 0.06), rgba(255, 0, 140, 0.04)),
-    var(--surface);
-  border: 1px solid transparent;
-  background-clip: padding-box;
+/* Display headline treatment: huge, tight, with a gradient-ink accent span */
+.display {
+  font-size: clamp(34px, 5vw, var(--text-display));
+  font-weight: 800;
+  letter-spacing: -1.2px;
+  line-height: 1.08;
+  color: var(--heading);
 }
-.glass-card::before {
-  content: '';
-  position: absolute;
-  inset: -1px;
-  border-radius: inherit;
-  padding: 1px;
-  background: var(--grad-primary-soft);
-  -webkit-mask:
-    linear-gradient(#fff 0 0) content-box,
-    linear-gradient(#fff 0 0);
-  -webkit-mask-composite: xor;
-  mask-composite: exclude;
-  pointer-events: none;
+.display .ink {
+  background: var(--grad-text);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }
 
-/* PillButton — gradient variant */
-.pill-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  height: 52px;
-  padding: 0 28px;
-  border-radius: 28px;
-  font-size: 15px;
-  font-weight: 600;
-  letter-spacing: 0.5px;
-  color: #fff;
-  background: var(--grad-primary);
-  box-shadow: var(--glow);
-  transition: transform 0.12s ease, opacity 0.15s ease;
+/* Page-load choreography: sequential fade-rise (motion-safe only) */
+@media (prefers-reduced-motion: no-preference) {
+  .rise {
+    opacity: 0;
+    animation: rise 0.55s var(--ease-out) forwards;
+  }
+  .rise-2 { animation-delay: 0.08s; }
+  .rise-3 { animation-delay: 0.16s; }
+  .rise-4 { animation-delay: 0.24s; }
 }
-.pill-btn:active {
-  transform: scale(0.98);
-}
-.pill-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-/* PillButton — outline variant */
-.pill-btn--outline {
-  background: var(--surface);
-  box-shadow: none;
-  position: relative;
-  border: 1px solid var(--muted);
-}
-
-/* Dark rounded input (auth + sheets) */
-.dark-input {
-  width: 100%;
-  height: 52px;
-  border-radius: var(--radius-lg);
-  background: var(--elevated);
-  border: 1px solid var(--border);
-  padding: 0 16px;
-  font-size: 15px;
-  transition: border-color 0.15s ease;
-}
-.dark-input:focus-within,
-.dark-input:focus {
-  border-color: var(--primary);
-}
-
-.field-label {
-  display: block;
-  font-size: 13px;
-  font-weight: 500;
-  letter-spacing: 0.5px;
-  color: var(--subtle);
-  margin-bottom: 6px;
-}
-
-/* Filter / preset chips */
-.chip {
-  height: 34px;
-  padding: 0 14px;
-  border-radius: 16px;
-  font-size: 13px;
-  font-weight: 500;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  color: var(--subtle);
-  transition: all 0.15s ease;
-}
-.chip--active {
-  background: var(--primary);
-  border-color: var(--primary);
-  color: #fff;
-}
-
-/* Small status/priority badge */
-.badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 2px 9px;
-  border-radius: 999px;
-  font-size: 11px;
-  font-weight: 500;
-  text-transform: capitalize;
-}
-
-.spinner {
-  width: 22px;
-  height: 22px;
-  border: 2.5px solid var(--muted);
-  border-top-color: var(--primary-light);
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-}
-@keyframes spin {
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
   to {
-    transform: rotate(360deg);
+    opacity: 1;
+    transform: none;
   }
 }
 
-/* Modal / sheet overlay */
-.overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.65);
-  backdrop-filter: blur(4px);
+/* Center content in the full viewport (boot / splash) */
+.center-fill {
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 50;
-  padding: 16px;
-}
-.sheet {
-  width: 100%;
-  max-width: 520px;
-  background: var(--elevated);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-2xl);
-  padding: 24px;
-  max-height: 90vh;
-  overflow-y: auto;
-}
-@media (max-width: 640px) {
-  .overlay {
-    align-items: flex-end;
-    padding: 0;
-  }
-  .sheet {
-    max-width: none;
-    border-radius: var(--radius-2xl) var(--radius-2xl) 0 0;
-  }
-}
-
-.empty-state {
-  text-align: center;
-  color: var(--subtle);
-  padding: 48px 16px;
-}
-.empty-state h3 {
-  color: var(--heading);
-  font-size: 22px;
-  font-weight: 700;
-  margin-bottom: 6px;
+  height: 100vh;
 }

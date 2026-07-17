@@ -1,5 +1,5 @@
 import React, { memo, useEffect } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import Animated, {
   cancelAnimation,
   interpolate,
@@ -15,6 +15,7 @@ import Animated, {
 import { UIMessage } from '../hooks/useChat';
 import { useTheme } from '@hooks/useTheme';
 import { StreamingText } from './StreamingText';
+import { spacing } from '@theme';
 
 interface Props {
   message: UIMessage;
@@ -55,41 +56,44 @@ function makeEntering(fromX: number): EntryExitAnimationFunction {
 const enterFromRight = makeEntering(24);
 const enterFromLeft = makeEntering(-24);
 
-export const MessageBubble = memo(function MessageBubble({ message, animateEntry = false }: Props) {
+export const MessageBubble = memo(function MessageBubbleInner({ message, animateEntry = false }: Props) {
   const { theme } = useTheme();
   const isUser = message.role === 'user';
 
-  return (
-    <Animated.View
-      entering={animateEntry ? (isUser ? enterFromRight : enterFromLeft) : undefined}
-      style={[styles.row, isUser ? styles.rowUser : styles.rowAssistant]}
-    >
-      {!isUser && (
-        <View style={[styles.avatar, { backgroundColor: theme.colors.primary }]}>
-          <Text style={styles.avatarText}>AI</Text>
-        </View>
-      )}
-
-      <View
-        style={[
-          styles.bubble,
-          isUser
-            ? [styles.bubbleUser, { backgroundColor: theme.colors.primary }]
-            : [styles.bubbleAssistant, { backgroundColor: theme.colors.surface }],
-          { maxWidth: '80%' },
-        ]}
+  if (isUser) {
+    return (
+      <Animated.View
+        entering={animateEntry ? enterFromRight : undefined}
+        style={[styles.row, styles.rowUser]}
       >
-        {message.isStreaming && message.content === '' ? (
-          <TypingDots color={theme.colors.subtle} />
-        ) : (
+        <View style={[styles.userBubble, { backgroundColor: theme.colors.elevated }]}>
           <StreamingText
             text={message.content}
             isStreaming={!!message.isStreaming}
-            color={isUser ? '#FFFFFF' : theme.colors.text}
-            style={styles.text}
+            color={theme.colors.heading}
+            style={styles.userText}
           />
-        )}
-      </View>
+        </View>
+      </Animated.View>
+    );
+  }
+
+  // Assistant replies render bubble-less: full-width plain text, no avatar.
+  return (
+    <Animated.View
+      entering={animateEntry ? enterFromLeft : undefined}
+      style={[styles.row, styles.rowAssistant]}
+    >
+      {message.isStreaming && message.content === '' ? (
+        <TypingDots color={theme.colors.subtle} />
+      ) : (
+        <StreamingText
+          text={message.content}
+          isStreaming={!!message.isStreaming}
+          color={theme.colors.text}
+          style={styles.assistantText}
+        />
+      )}
     </Animated.View>
   );
 });
@@ -132,52 +136,35 @@ function TypingDot({ delay, color }: { delay: number; color: string }) {
 
 const styles = StyleSheet.create({
   row: {
-    flexDirection: 'row',
-    marginVertical: 6,
-    paddingHorizontal: 16,
-    alignItems: 'flex-end',
+    marginVertical: spacing.sm,
+    paddingHorizontal: spacing.lg,
   },
   rowUser: {
-    justifyContent: 'flex-end',
+    alignItems: 'flex-end',
   },
   rowAssistant: {
-    justifyContent: 'flex-start',
+    alignItems: 'flex-start',
   },
-  avatar: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 8,
-    marginBottom: 2,
-  },
-  avatarText: {
-    color: '#FFFFFF',
-    fontSize: 10,
-    fontWeight: '700',
-  },
-  bubble: {
-    borderRadius: 18,
-    paddingHorizontal: 14,
+  userBubble: {
+    maxWidth: '78%',
+    borderRadius: 22,
+    borderBottomRightRadius: 8,
+    paddingHorizontal: spacing.base,
     paddingVertical: 10,
   },
-  bubbleUser: {
-    borderBottomRightRadius: 4,
-  },
-  bubbleAssistant: {
-    borderBottomLeftRadius: 4,
-  },
-  text: {
+  userText: {
     fontSize: 15,
     lineHeight: 22,
+  },
+  assistantText: {
+    fontSize: 15,
+    lineHeight: 23,
   },
   typingIndicator: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 5,
     paddingVertical: 7,
-    paddingHorizontal: 4,
   },
   dot: {
     width: 7,

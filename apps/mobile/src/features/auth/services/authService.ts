@@ -2,7 +2,7 @@ import { apiClient } from '@services/api/client';
 import { secureStorage } from '@services/storage/secureStorage';
 import { useAuthStore } from '@stores/authStore';
 import { logger } from '@utils/logger';
-import type { AuthResponse, LoginRequest, RegisterRequest } from '@ai-life/shared';
+import type { AuthResponse, LoginRequest, RegisterRequest, User } from '@ai-life/shared';
 
 /**
  * Auth Service — Mobile side
@@ -78,12 +78,12 @@ export const authService = {
       useAuthStore.getState().setTokens(tokens.accessToken, tokens.refreshToken);
 
       // Verify tokens are still valid by fetching user profile
-      const response = await apiClient.get<{ data: { user: any } }>('/auth/me');
+      const response = await apiClient.get<{ data: { user: User } }>('/auth/me');
       const { user } = response.data.data;
 
       useAuthStore.getState().login(user, tokens.accessToken, tokens.refreshToken);
       logger.info('Session restored', user.email);
-    } catch (error) {
+    } catch {
       // Tokens expired or invalid — clear and redirect to login
       logger.warn('Session restoration failed, clearing tokens');
       await secureStorage.clearTokens();

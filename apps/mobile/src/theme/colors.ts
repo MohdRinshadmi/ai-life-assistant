@@ -6,6 +6,33 @@
  * a graceful fallback.
  */
 
+// ── Gradient Presets ──────────────────────────────
+// Most gradients are 3-stop violet → magenta for a richer, glossier blend.
+// Typed as `string[]` (not readonly tuples) so they can be passed straight
+// to LinearGradient's `colors` prop without casting.
+export type GradientKey =
+  | 'primary'
+  | 'primarySoft'
+  | 'micGlow'
+  | 'edge'
+  | 'surface'
+  | 'button'
+  | 'pillBorder'
+  | 'backdrop'
+  | 'glass';
+
+const gradients: Record<GradientKey, string[]> = {
+  primary: ['#8B00FF', '#FF008C'],                       // Violet → Magenta (CTAs, mic)
+  primarySoft: ['#5500A8', '#A8005C'],                   // Dimmer for borders / outlines
+  micGlow: ['#B566FF', '#FF008C', '#FF2E97'],            // 3-stop for radial mic glow
+  edge: ['#8B00FF', '#FF008C', '#8B00FF'],               // Neon edge frame (listening)
+  surface: ['rgba(139,0,255,0.06)', 'rgba(255,0,140,0.04)'], // Card glass tint
+  button: ['#1A0E2E', '#0E0816'],                        // Dark glossy button fill
+  pillBorder: ['#8B00FF', '#FF008C'],                    // Pill button stroke
+  backdrop: ['#000000', '#0E0816', '#000000'],           // Screen bg with violet middle
+  glass: ['rgba(255,255,255,0.08)', 'rgba(255,255,255,0.02)'],
+};
+
 export const colors = {
   // ── Brand Colors ──────────────────────────────────
   // Vivid violet — used for primary CTAs, active states, mic glow
@@ -89,18 +116,7 @@ export const colors = {
   transparent: 'transparent',
 
   // ── Gradient Presets ──────────────────────────────
-  // Most gradients are 3-stop violet → magenta for a richer, glossier blend.
-  gradients: {
-    primary: ['#8B00FF', '#FF008C'],                       // Violet → Magenta (CTAs, mic)
-    primarySoft: ['#5500A8', '#A8005C'],                   // Dimmer for borders / outlines
-    micGlow: ['#B566FF', '#FF008C', '#FF2E97'],            // 3-stop for radial mic glow
-    edge: ['#8B00FF', '#FF008C', '#8B00FF'],               // Neon edge frame (listening)
-    surface: ['rgba(139,0,255,0.06)', 'rgba(255,0,140,0.04)'], // Card glass tint
-    button: ['#1A0E2E', '#0E0816'],                        // Dark glossy button fill
-    pillBorder: ['#8B00FF', '#FF008C'],                    // Pill button stroke
-    backdrop: ['#000000', '#0E0816', '#000000'],           // Screen bg with violet middle
-    glass: ['rgba(255,255,255,0.08)', 'rgba(255,255,255,0.02)'],
-  },
+  gradients,
 } as const;
 
 export type ColorScheme = 'dark' | 'light';

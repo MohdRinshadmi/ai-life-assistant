@@ -1,4 +1,5 @@
 import { NativeModules } from 'react-native';
+import { logger } from '@utils/logger';
 
 /**
  * Environment / host configuration.
@@ -76,13 +77,11 @@ const API_HOST = __DEV__
   ? resolveDevHostFromMetro() ?? DEV_FALLBACK_HOST
   : PROD_HOST;
 
-if (__DEV__) {
-  // Diagnostic: confirms which host the app talks to and why.
-  console.log('🌐 API host resolution', {
-    scriptURL: NativeModules?.SourceCode?.scriptURL,
-    resolved: API_HOST,
-  });
-}
+// Diagnostic: confirms which host the app talks to and why (dev-only output).
+logger.info('API host resolution', {
+  scriptURL: NativeModules?.SourceCode?.scriptURL,
+  resolved: API_HOST,
+});
 
 export const env = {
   /** Versioned REST API base URL. */

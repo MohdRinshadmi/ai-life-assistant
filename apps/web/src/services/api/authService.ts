@@ -4,6 +4,7 @@ import { apiClient } from './client';
 import { env } from '@/config/env';
 import { tokenStorage } from '@/services/storage/tokenStorage';
 import { useAuthStore } from '@/stores/authStore';
+import { queryClient } from '@/lib/queryClient';
 
 export const authService = {
   async login(payload: LoginRequest): Promise<AuthResponse> {
@@ -21,6 +22,8 @@ export const authService = {
       await apiClient.post('/auth/logout');
     } finally {
       useAuthStore.getState().logout();
+      // Drop the previous user's cached server data.
+      queryClient.clear();
     }
   },
 

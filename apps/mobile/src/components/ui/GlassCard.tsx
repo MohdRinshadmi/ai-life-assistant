@@ -17,9 +17,9 @@ export function GlassCard({ children, style, borderRadius = 18 }: Props) {
   const { theme } = useTheme();
   return (
     <LinearGradient
-      colors={theme.colors.gradients.primarySoft as unknown as string[]}
+      colors={theme.colors.gradients.primarySoft}
       start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
-      style={[{ borderRadius, padding: 1 }, style]}
+      style={[styles.wrap, { borderRadius }, style]}
     >
       <View
         style={[
@@ -28,7 +28,7 @@ export function GlassCard({ children, style, borderRadius = 18 }: Props) {
         ]}
       >
         <LinearGradient
-          colors={theme.colors.gradients.surface as unknown as string[]}
+          colors={theme.colors.gradients.surface}
           start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
           style={[StyleSheet.absoluteFill, { borderRadius: borderRadius - 1 }]}
           pointerEvents="none"
@@ -40,6 +40,7 @@ export function GlassCard({ children, style, borderRadius = 18 }: Props) {
 }
 
 const styles = StyleSheet.create({
+  wrap: { padding: 1 },
   // flexGrow (not flex: 1) so the surface fills fixed-size cards but still
   // hugs content when the card is sized by its content (Tasks/Notes rows).
   inner: { flexGrow: 1, padding: 16, overflow: 'hidden' },

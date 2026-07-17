@@ -6,13 +6,15 @@
 
 /* ----- Sidebar (desktop) ----- */
 .layout__nav {
-  width: 220px;
+  width: 224px;
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  padding: 20px 12px;
-  background: var(--surface);
+  gap: var(--space-1);
+  padding: var(--space-5) var(--space-3);
+  background: rgba(14, 8, 22, 0.65);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
   border-right: 1px solid var(--border);
 }
 
@@ -20,7 +22,7 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 4px 12px 20px;
+  padding: var(--space-1) var(--space-3) var(--space-5);
 }
 .layout__brand-orb {
   width: 26px;
@@ -30,21 +32,28 @@
   box-shadow: 0 0 14px rgba(139, 0, 255, 0.7);
 }
 .layout__brand-name {
-  font-size: 17px;
-  font-weight: 700;
-  color: var(--heading);
+  font-size: var(--text-md);
+  font-weight: 800;
+  letter-spacing: -0.3px;
+  background: var(--grad-text);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }
 
 .layout__link {
+  position: relative;
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 11px 12px;
+  gap: var(--space-3);
+  padding: 11px var(--space-3);
   border-radius: var(--radius-lg);
   color: var(--subtle);
   font-size: 14px;
   font-weight: 500;
-  transition: all 0.15s ease;
+  transition:
+    color var(--dur-fast) ease,
+    background-color var(--dur-fast) ease;
 }
 .layout__link:hover {
   color: var(--text);
@@ -52,7 +61,20 @@
 }
 .layout__link--active {
   color: var(--primary-light);
-  background: rgba(139, 0, 255, 0.12);
+  background: rgba(139, 0, 255, 0.14);
+  box-shadow: inset 0 0 20px rgba(139, 0, 255, 0.12);
+}
+/* Active rail: a short gradient bar hugging the link's left edge */
+.layout__link--active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 18px;
+  border-radius: 2px;
+  background: var(--grad-primary);
 }
 
 .layout__user {
@@ -60,30 +82,11 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 10px 12px;
+  padding: 10px var(--space-3);
   border-top: 1px solid var(--border);
 }
-.layout__avatar {
-  width: 34px;
-  height: 34px;
-  border-radius: 50%;
-  background: var(--grad-primary);
-  color: #fff;
-  font-size: 14px;
-  font-weight: 700;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-  flex-shrink: 0;
-}
-.layout__avatar img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
 .layout__user-name {
-  font-size: 13px;
+  font-size: var(--text-sm);
   color: var(--text);
   white-space: nowrap;
   overflow: hidden;
@@ -106,7 +109,7 @@
     width: 100%;
     flex-direction: row;
     justify-content: space-around;
-    padding: 8px 4px calc(8px + env(safe-area-inset-bottom));
+    padding: var(--space-2) var(--space-1) calc(var(--space-2) + env(safe-area-inset-bottom));
     height: 80px;
     border-right: none;
     border-top: 1px solid var(--border);
@@ -117,13 +120,21 @@
   }
   .layout__link {
     flex-direction: column;
-    gap: 4px;
+    gap: var(--space-1);
     padding: 6px 10px;
-    font-size: 11px;
+    font-size: var(--text-xs);
     background: none !important;
     color: var(--muted);
   }
   .layout__link--active {
     color: var(--primary-light);
+  }
+  /* Rail moves to a dot above the icon on mobile */
+  .layout__link--active::before {
+    left: 50%;
+    top: -6px;
+    transform: translateX(-50%);
+    width: 16px;
+    height: 3px;
   }
 }

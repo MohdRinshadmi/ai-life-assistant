@@ -1,0 +1,183 @@
+/* ── Today rail — the chat page's widget column ─────────────────── */
+
+.today {
+  width: 300px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-5) 0 var(--space-4);
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.today__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: 0 var(--space-1);
+}
+.today__head h2 {
+  font-size: var(--text-md);
+  font-weight: 700;
+  letter-spacing: -0.2px;
+  color: var(--heading);
+}
+.today__date {
+  font-size: var(--text-sm);
+  color: var(--subtle);
+}
+
+.today__card {
+  background: rgba(14, 8, 22, 0.72);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: var(--space-4);
+}
+
+.today__card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-3);
+}
+.today__card-head h3 {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  color: var(--subtle);
+}
+.today__more {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: var(--text-sm);
+  color: var(--primary-light);
+}
+.today__more:hover {
+  color: var(--accent-light);
+}
+
+/* ── Day Pulse ring — the page's signature ── */
+.pulse {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+}
+.pulse__ring {
+  position: relative;
+  width: 128px;
+  height: 128px;
+}
+.pulse__ring svg {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+.pulse__track {
+  fill: none;
+  stroke: var(--border);
+  stroke-width: 9;
+}
+.pulse__fill {
+  fill: none;
+  stroke: url(#pulse-grad);
+  stroke-width: 9;
+  stroke-linecap: round;
+  filter: drop-shadow(0 0 8px rgba(139, 0, 255, 0.55));
+  transition: stroke-dashoffset 0.9s var(--ease-out);
+}
+.pulse__value {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+}
+.pulse__value strong {
+  font-size: var(--text-xl);
+  font-weight: 800;
+  letter-spacing: -0.6px;
+  color: var(--heading);
+}
+.pulse__value span {
+  font-size: var(--text-xs);
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: var(--subtle);
+}
+.pulse__caption {
+  font-size: var(--text-sm);
+  color: var(--subtle);
+}
+.pulse__caption strong {
+  color: var(--text);
+  font-weight: 600;
+}
+.pulse__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+  color: var(--subtle);
+  text-align: center;
+}
+
+/* ── Rows shared by Up next / Recent notes ── */
+.today__rows {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+}
+.today__row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 9px 0;
+}
+.today__row + .today__row {
+  border-top: 1px solid var(--border);
+}
+.today__dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.today__row-title {
+  flex: 1;
+  min-width: 0;
+  font-size: 14px;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.today__due {
+  font-size: var(--text-xs);
+  color: var(--subtle);
+  flex-shrink: 0;
+}
+.today__due--late {
+  color: var(--error);
+  font-weight: 600;
+}
+.today__blank {
+  font-size: var(--text-sm);
+  color: var(--subtle);
+  line-height: 1.45;
+}
+
+/* The rail steps aside before the chat column gets cramped */
+@media (max-width: 1099px) {
+  .today {
+    display: none;
+  }
+}

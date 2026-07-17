@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { Icon, type IconName } from '@/components/ui/Icon';
+import { Avatar, Card, Icon, MicOrb, type IconName } from '@/components/ui';
 import { useAuthStore } from '@/stores/authStore';
 import './HomePage.css';
 
@@ -10,6 +10,13 @@ const ACTIONS: Array<{ icon: IconName; title: string; subtitle: string; to: stri
   { icon: 'mic', title: 'Voice Command', subtitle: 'Just speak naturally', to: '/chat' },
 ];
 
+function daypart(): string {
+  const h = new Date().getHours();
+  if (h < 12) return 'Good morning';
+  if (h < 18) return 'Good afternoon';
+  return 'Good evening';
+}
+
 export function HomePage() {
   const user = useAuthStore((s) => s.user);
   const navigate = useNavigate();
@@ -17,45 +24,66 @@ export function HomePage() {
 
   return (
     <div className="home">
-      <header className="home__topbar">
-        <button className="home__premium">
+      <header className="home__topbar rise">
+        <button className="home__premium" type="button">
           <Icon name="plus" size={14} />
           Try Premium
         </button>
-        <span className="home__avatar">
-          {user?.avatarUrl ? <img src={user.avatarUrl} alt="" /> : (firstName[0] ?? '?').toUpperCase()}
-        </span>
+        <Avatar name={user?.displayName} src={user?.avatarUrl} size={36} />
       </header>
 
-      <h1 className="home__greeting">Hi {firstName},</h1>
-      <p className="home__subtitle">
-        Give any command naturally, from generating notes to scheduling tasks
-      </p>
-
-      <div className="home__aurora" />
-
-      <div className="home__grid">
-        {ACTIONS.map((action) => (
-          <button
-            key={action.title}
-            className="glass-card home__action"
-            onClick={() => navigate(action.to)}
-          >
-            <span className="home__action-icon">
-              <Icon name={action.icon} size={16} />
-            </span>
-            <span className="home__action-title">{action.title}</span>
-            <span className="home__action-subtitle">{action.subtitle}</span>
-          </button>
-        ))}
+      <div className="home__hero rise rise-2">
+        <p className="home__eyebrow">
+          <span className="home__eyebrow-dot" aria-hidden="true" />
+          {daypart()}
+        </p>
+        <h1 className="display">
+          Hi {firstName},
+          <br />
+          <span className="ink">what can I do for you?</span>
+        </h1>
+        <p className="home__subtitle">
+          Give any command naturally, from generating notes to scheduling tasks
+        </p>
       </div>
 
-      <button className="pill-btn home__cta" onClick={() => navigate('/chat')}>
-        <span>Tap here to start chatting</span>
-        <span className="home__cta-mic">
-          <Icon name="mic" size={20} />
-        </span>
-      </button>
+      <div className="home__stage rise rise-3">
+        <span className="home__ring home__ring--outer" aria-hidden="true" />
+        <span className="home__ring home__ring--inner" aria-hidden="true" />
+        <MicOrb size={128} onClick={() => navigate('/chat')} />
+        <p className="home__stage-caption">Tap and just speak</p>
+      </div>
+
+      <div className="home__grid rise rise-4">
+        {ACTIONS.map((action) => (
+          <Card
+            key={action.title}
+            interactive
+            className="home__action"
+            role="link"
+            tabIndex={0}
+            aria-label={`${action.title} — ${action.subtitle}`}
+            onClick={() => navigate(action.to)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                navigate(action.to);
+              }
+            }}
+          >
+            <span className="home__action-icon">
+              <Icon name={action.icon} size={17} />
+            </span>
+            <span className="home__action-text">
+              <span className="home__action-title">{action.title}</span>
+              <span className="home__action-subtitle">{action.subtitle}</span>
+            </span>
+            <span className="home__action-arrow" aria-hidden="true">
+              <Icon name="arrow-right" size={16} />
+            </span>
+          </Card>
+        ))}
+      </div>
     </div>
   );
 }

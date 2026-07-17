@@ -107,7 +107,7 @@ export function useSpeech({ onTranscript }: UseSpeechOptions = {}): UseSpeechRet
 
   const speak = useCallback((text: string) => {
     Tts.stop();
-    const plain = text.replace(/[*_`#>~\[\]]/g, '').replace(/\n+/g, ' ').trim();
+    const plain = text.replace(/[*_`#>~[\]]/g, '').replace(/\n+/g, ' ').trim();
     Tts.speak(plain);
   }, []);
 

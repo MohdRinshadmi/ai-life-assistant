@@ -8,6 +8,9 @@
 /** react-native-keychain service identifier for the auth token blob. */
 export const KEYCHAIN_AUTH_SERVICE = 'ai-life-assistant-auth';
 
+/** Human-readable app version shown in Settings → About. Keep in sync with package.json. */
+export const APP_VERSION = '0.0.1';
+
 /**
  * Socket.io reconnection / connection tuning spread into `io()`.
  * Transport selection is kept at the call site since it's contextually typed

@@ -115,10 +115,12 @@ export function useSpeechTranscription(
 
     try {
       await AILSpeech.start({ ...optsRef.current, ...override });
-    } catch (e: any) {
+    } catch (e) {
+      // Native promise rejections surface as {code, message}-shaped errors.
+      const native = e as { code?: SpeechErrorCode; message?: string } | null;
       setError({
-        code: (e?.code as SpeechErrorCode) ?? 'E_RECOGNITION_FAILED',
-        message: e?.message ?? 'Failed to start transcription.',
+        code: native?.code ?? 'E_RECOGNITION_FAILED',
+        message: native?.message ?? 'Failed to start transcription.',
       });
     }
   }, []);

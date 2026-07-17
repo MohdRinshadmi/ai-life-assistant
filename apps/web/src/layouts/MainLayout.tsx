@@ -1,5 +1,5 @@
 import { NavLink, Outlet } from 'react-router-dom';
-import { Icon, type IconName } from '@/components/ui/Icon';
+import { Avatar, Icon, type IconName } from '@/components/ui';
 import { useAuthStore } from '@/stores/authStore';
 import './MainLayout.css';
 
@@ -19,9 +19,12 @@ export function MainLayout() {
 
   return (
     <div className="layout screen">
-      <nav className="layout__nav">
+      <a className="sr-only" href="#main-content">
+        Skip to content
+      </a>
+      <nav className="layout__nav" aria-label="Main">
         <div className="layout__brand">
-          <span className="layout__brand-orb" />
+          <span className="layout__brand-orb" aria-hidden="true" />
           <span className="layout__brand-name">AI Life</span>
         </div>
         {NAV_ITEMS.map((item) => (
@@ -40,17 +43,11 @@ export function MainLayout() {
           </NavLink>
         ))}
         <div className="layout__user">
-          <span className="layout__avatar">
-            {user?.avatarUrl ? (
-              <img src={user.avatarUrl} alt="" />
-            ) : (
-              (user?.displayName?.[0] ?? '?').toUpperCase()
-            )}
-          </span>
+          <Avatar name={user?.displayName} src={user?.avatarUrl} size={34} />
           <span className="layout__user-name">{user?.displayName}</span>
         </div>
       </nav>
-      <main className="layout__content">
+      <main id="main-content" className="layout__content">
         <Outlet />
       </main>
     </div>

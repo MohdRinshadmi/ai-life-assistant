@@ -22,18 +22,21 @@ export function NeonEdgeFrame({ children, thickness = 2, radius = 32, style }: P
   return (
     <View style={[styles.outer, style]}>
       <LinearGradient
-        colors={theme.colors.gradients.edge as unknown as string[]}
+        colors={theme.colors.gradients.edge}
         start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
         style={[StyleSheet.absoluteFill, { borderRadius: radius }]}
       />
       <View
-        style={{
-          position: 'absolute',
-          top: thickness, bottom: thickness, left: thickness, right: thickness,
-          backgroundColor: '#000000',
-          borderRadius: radius - thickness,
-          overflow: 'hidden',
-        }}
+        style={[
+          styles.panel,
+          {
+            top: thickness,
+            bottom: thickness,
+            left: thickness,
+            right: thickness,
+            borderRadius: radius - thickness,
+          },
+        ]}
       >
         {children}
       </View>
@@ -43,4 +46,5 @@ export function NeonEdgeFrame({ children, thickness = 2, radius = 32, style }: P
 
 const styles = StyleSheet.create({
   outer: { flex: 1, overflow: 'hidden' },
+  panel: { position: 'absolute', backgroundColor: '#000000', overflow: 'hidden' },
 });

@@ -1,5 +1,5 @@
-import jwt, { JwtPayload, SignOptions } from 'jsonwebtoken';
-import { config, logger } from '@config';
+import jwt, { SignOptions } from 'jsonwebtoken';
+import { config } from '@config';
 import { UnauthorizedError } from '@shared/errors';
 
 /**
@@ -32,7 +32,7 @@ export interface DecodedToken extends TokenPayload {
 
 export function signAccessToken(payload: TokenPayload): string {
   const options: SignOptions = {
-    expiresIn: config.jwt.accessExpiresIn as any,
+    expiresIn: config.jwt.accessExpiresIn as SignOptions['expiresIn'],
     issuer: 'ai-life-assistant',
     audience: 'ai-life-mobile',
   };
@@ -42,7 +42,7 @@ export function signAccessToken(payload: TokenPayload): string {
 
 export function signRefreshToken(payload: TokenPayload): string {
   const options: SignOptions = {
-    expiresIn: config.jwt.refreshExpiresIn as any,
+    expiresIn: config.jwt.refreshExpiresIn as SignOptions['expiresIn'],
     issuer: 'ai-life-assistant',
     audience: 'ai-life-mobile',
   };

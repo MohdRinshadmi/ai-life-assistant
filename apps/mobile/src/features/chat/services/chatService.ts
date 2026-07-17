@@ -32,4 +32,9 @@ export const chatService = {
     );
     return data.data.messages;
   },
+
+  /** DELETE /conversations/:id — permanently remove a conversation. */
+  async deleteConversation(conversationId: string): Promise<void> {
+    await apiClient.delete(`/conversations/${conversationId}`);
+  },
 };

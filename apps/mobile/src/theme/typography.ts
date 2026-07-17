@@ -69,6 +69,13 @@ export const typography = {
  * Use these instead of defining ad-hoc text styles in components.
  */
 export const textStyles = {
+  /** Display headline — hero greetings and empty-state statements. */
+  display: {
+    fontSize: 34,
+    fontWeight: typography.fontWeight.extrabold,
+    letterSpacing: -1,
+    lineHeight: 40,
+  },
   h1: {
     fontSize: typography.fontSize['3xl'],
     fontWeight: typography.fontWeight.bold,

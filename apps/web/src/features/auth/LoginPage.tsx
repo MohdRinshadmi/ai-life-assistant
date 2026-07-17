@@ -1,9 +1,10 @@
 import { useState, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
-import { MicOrb } from '@/components/ui/MicOrb';
+import { Button, Input } from '@/components/ui';
 import { authService } from '@/services/api/authService';
 import { getApiErrorMessage } from '@/services/api/client';
 import { useAuthStore } from '@/stores/authStore';
+import { AuthHero } from './AuthHero';
 import './AuthPages.css';
 
 export function LoginPage() {
@@ -33,58 +34,59 @@ export function LoginPage() {
 
   return (
     <div className="auth screen">
-      <div className="auth__hero">
-        <MicOrb size={92} />
-        <span className="auth__tag">
-          <span className="auth__tag-dot" />
-          AI Voice Command
-        </span>
-        <h1 className="auth__title">Effortless control with AI Life</h1>
-        <p className="auth__subtitle">
-          We believe in the power of voice. Give any command naturally, from generating notes to
-          scheduling tasks.
-        </p>
-        <div className="auth__dots">
+      <AuthHero
+        title={
+          <>
+            Effortless control <span className="ink">with AI Life</span>
+          </>
+        }
+        subtitle="We believe in the power of voice. Give any command naturally, from generating notes to scheduling tasks."
+      >
+        <div className="auth__dots" aria-hidden="true">
           <span className="auth__dot" />
           <span className="auth__dot auth__dot--active" />
           <span className="auth__dot" />
         </div>
-      </div>
+      </AuthHero>
 
       {showForm ? (
         <form className="auth__form" onSubmit={handleSubmit}>
-          <input
-            className="dark-input"
+          <Input
             type="email"
             placeholder="Email"
+            aria-label="Email"
             value={email}
             autoComplete="email"
             onChange={(e) => setEmail(e.target.value)}
           />
-          <input
-            className="dark-input"
+          <Input
             type="password"
             placeholder="Password"
+            aria-label="Password"
             value={password}
             autoComplete="current-password"
             onChange={(e) => setPassword(e.target.value)}
           />
-          {error && <p className="auth__error">{error}</p>}
-          <button className="pill-btn" type="submit" disabled={submitting || !email || !password}>
-            {submitting ? 'Signing in…' : 'Sign In'}
-          </button>
+          {error && (
+            <p className="auth__error" role="alert">
+              {error}
+            </p>
+          )}
+          <Button type="submit" size="lg" loading={submitting} disabled={!email || !password}>
+            Sign In
+          </Button>
           <p className="auth__switch">
             New here? <Link to="/register">Create an account</Link>
           </p>
         </form>
       ) : (
         <div className="auth__actions">
-          <Link to="/register" className="pill-btn">
+          <Link to="/register" className="btn btn--primary btn--lg">
             Sign Up
           </Link>
-          <button className="pill-btn pill-btn--outline" onClick={() => setShowForm(true)}>
+          <Button variant="outline" size="lg" onClick={() => setShowForm(true)}>
             Sign In with Email
-          </button>
+          </Button>
         </div>
       )}
     </div>

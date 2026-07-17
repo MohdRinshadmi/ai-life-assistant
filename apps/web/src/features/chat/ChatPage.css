@@ -1,11 +1,22 @@
+/* ── Shell: chat column + Today rail ─────────────────────────────── */
+.chat-shell {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-6);
+  flex: 1;
+  width: 100%;
+  max-width: 1220px;
+  margin: 0 auto;
+  padding: 0 var(--space-6);
+  min-height: 0;
+}
+
 .chat {
   display: flex;
   flex-direction: column;
   flex: 1;
-  width: 100%;
-  max-width: 800px;
-  margin: 0 auto;
-  padding: 0 16px;
+  min-width: 0;
+  max-width: 780px;
   min-height: 0;
 }
 
@@ -16,8 +27,9 @@
   padding: 20px 0 14px;
 }
 .chat__header h2 {
-  font-size: 24px;
+  font-size: var(--text-md);
   font-weight: 600;
+  letter-spacing: -0.2px;
   color: var(--heading);
 }
 
@@ -39,16 +51,6 @@
   box-shadow: 0 0 8px rgba(16, 185, 129, 0.7);
 }
 
-.chat__toast {
-  padding: 10px 16px;
-  border-radius: var(--radius-lg);
-  background: rgba(16, 185, 129, 0.15);
-  border: 1px solid rgba(16, 185, 129, 0.4);
-  color: var(--success);
-  font-size: 13px;
-  margin-bottom: 8px;
-}
-
 .chat__error {
   padding: 10px 16px;
   border-radius: var(--radius-lg);
@@ -64,24 +66,70 @@
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: var(--space-4);
   padding: 8px 0 16px;
   min-height: 0;
 }
 
+/* ── Empty state: centered greeting, suggestions docked above composer ── */
 .chat__empty {
-  margin: auto;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+.chat__greeting {
+  flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 14px;
+  justify-content: center;
+  gap: var(--space-4);
+  text-align: center;
+  color: var(--subtle);
+}
+.chat__empty-title {
+  font-size: clamp(28px, 4vw, 38px);
 }
 
-/* ----- Bubbles ----- */
+.chat__suggestion-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-2);
+  padding-bottom: var(--space-1);
+}
+.suggestion-card {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  text-align: left;
+  padding: 12px 14px;
+  border-radius: var(--radius-lg);
+  background: rgba(14, 8, 22, 0.72);
+  border: 1px solid var(--border);
+  transition:
+    border-color var(--dur-fast) ease,
+    background-color var(--dur-fast) ease,
+    transform var(--dur-fast) ease;
+}
+.suggestion-card:hover {
+  border-color: rgba(139, 0, 255, 0.5);
+  background: var(--elevated);
+  transform: translateY(-1px);
+}
+.suggestion-card strong {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text);
+}
+.suggestion-card span {
+  font-size: var(--text-sm);
+  color: var(--subtle);
+}
+
+/* ── Messages: bubble-less assistant, quiet user pill ── */
 .bubble-row {
   display: flex;
-  align-items: flex-end;
-  gap: 8px;
   animation: bubble-in 0.25s ease;
 }
 .bubble-row--user {
@@ -94,38 +142,23 @@
   }
 }
 
-.bubble-avatar {
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  background: var(--grad-primary);
-  color: #fff;
-  font-size: 10px;
-  font-weight: 700;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
 .bubble {
-  max-width: 80%;
-  padding: 10px 14px;
-  border-radius: 18px;
   font-size: 15px;
   white-space: pre-wrap;
   word-break: break-word;
 }
 .bubble--user {
-  background: var(--primary);
-  color: #fff;
-  border-bottom-right-radius: 4px;
+  max-width: 78%;
+  padding: 10px 16px;
+  border-radius: 22px;
+  border-bottom-right-radius: 8px;
+  background: var(--elevated);
+  color: var(--heading);
 }
 .bubble--assistant {
-  background: var(--surface);
-  border: 1px solid var(--border);
+  max-width: 100%;
   color: var(--text);
-  border-bottom-left-radius: 4px;
+  line-height: 1.6;
 }
 
 .bubble-cursor {
@@ -171,7 +204,7 @@
   }
 }
 
-/* ----- Listening overlay strip (NeonEdgeFrame-inspired) ----- */
+/* ── Listening overlay strip (NeonEdgeFrame-inspired) ── */
 .chat__listening {
   display: flex;
   align-items: center;
@@ -184,7 +217,7 @@
   border: 2px solid transparent;
   background-image:
     linear-gradient(#000, #000),
-    linear-gradient(90deg, #8b00ff, #ff008c, #8b00ff);
+    linear-gradient(90deg, var(--primary), var(--accent), var(--primary));
   background-origin: border-box;
   background-clip: padding-box, border-box;
   box-shadow: 0 0 24px rgba(139, 0, 255, 0.45);
@@ -195,16 +228,26 @@
   flex: 1;
 }
 
-/* ----- Input bar ----- */
+/* ── Composer ── */
 .chat__inputbar {
   display: flex;
   align-items: flex-end;
   gap: 8px;
-  background: var(--surface);
+  background: rgba(22, 12, 36, 0.7);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   border: 1px solid var(--border);
-  border-radius: 24px;
+  border-radius: 26px;
   padding: 8px 8px 8px 18px;
   margin-bottom: 16px;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.45);
+  transition: border-color var(--dur-fast) ease, box-shadow var(--dur-base) ease;
+}
+.chat__inputbar:focus-within {
+  border-color: rgba(139, 0, 255, 0.55);
+  box-shadow:
+    0 8px 28px rgba(0, 0, 0, 0.45),
+    0 0 24px rgba(139, 0, 255, 0.18);
 }
 .chat__inputbar textarea {
   flex: 1;
@@ -240,4 +283,13 @@
 }
 .chat__send:disabled {
   cursor: not-allowed;
+}
+
+@media (max-width: 767px) {
+  .chat-shell {
+    padding: 0 var(--space-4);
+  }
+  .chat__suggestion-grid {
+    grid-template-columns: 1fr;
+  }
 }

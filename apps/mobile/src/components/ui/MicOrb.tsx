@@ -89,7 +89,7 @@ export function MicOrb({ size = 100, active = false, onPress, onPressIn, onPress
   const mid = size * 1.6;
 
   return (
-    <View style={[{ width: outer, height: outer, alignItems: 'center', justifyContent: 'center' }, style]}>
+    <View style={[styles.center, { width: outer, height: outer }, style]}>
       {/* Outer ambient glow */}
       <Animated.View
         style={[
@@ -116,7 +116,7 @@ export function MicOrb({ size = 100, active = false, onPress, onPressIn, onPress
         pointerEvents="none"
       >
         <LinearGradient
-          colors={theme.colors.gradients.micGlow as unknown as string[]}
+          colors={theme.colors.gradients.micGlow}
           start={{ x: 0.1, y: 0.1 }} end={{ x: 0.9, y: 0.9 }}
           style={[StyleSheet.absoluteFill, { borderRadius: mid / 2 }]}
         />
@@ -140,7 +140,7 @@ export function MicOrb({ size = 100, active = false, onPress, onPressIn, onPress
         ]}
       >
         <LinearGradient
-          colors={theme.colors.gradients.primary as unknown as string[]}
+          colors={theme.colors.gradients.primary}
           start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
           style={[StyleSheet.absoluteFill, { borderRadius: size / 2 }]}
         />
@@ -153,40 +153,51 @@ export function MicOrb({ size = 100, active = false, onPress, onPressIn, onPress
 function MicIcon({ size }: { size: number }) {
   // Simple capsule + stand mic glyph drawn with views (no icon font dependency)
   return (
-    <View style={{ width: size, height: size, alignItems: 'center', justifyContent: 'center' }}>
-      <View style={{
-        width: size * 0.42,
-        height: size * 0.6,
-        borderRadius: size * 0.21,
-        backgroundColor: '#FFFFFF',
-        position: 'absolute',
-        top: size * 0.06,
-      }} />
-      <View style={{
-        width: size * 0.7,
-        height: size * 0.36,
-        borderBottomLeftRadius: size * 0.35,
-        borderBottomRightRadius: size * 0.35,
-        borderWidth: size * 0.07,
-        borderTopWidth: 0,
-        borderColor: '#FFFFFF',
-        position: 'absolute',
-        bottom: size * 0.12,
-      }} />
-      <View style={{
-        width: size * 0.42,
-        height: size * 0.07,
-        backgroundColor: '#FFFFFF',
-        borderRadius: size * 0.035,
-        position: 'absolute',
-        bottom: 0,
-      }} />
+    <View style={[styles.center, { width: size, height: size }]}>
+      <View
+        style={[
+          styles.micCapsule,
+          {
+            width: size * 0.42,
+            height: size * 0.6,
+            borderRadius: size * 0.21,
+            top: size * 0.06,
+          },
+        ]}
+      />
+      <View
+        style={[
+          styles.micCradle,
+          {
+            width: size * 0.7,
+            height: size * 0.36,
+            borderBottomLeftRadius: size * 0.35,
+            borderBottomRightRadius: size * 0.35,
+            borderWidth: size * 0.07,
+            bottom: size * 0.12,
+          },
+        ]}
+      />
+      <View
+        style={[
+          styles.micStand,
+          {
+            width: size * 0.42,
+            height: size * 0.07,
+            borderRadius: size * 0.035,
+          },
+        ]}
+      />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   absCenter: { position: 'absolute', alignItems: 'center', justifyContent: 'center' },
+  center: { alignItems: 'center', justifyContent: 'center' },
+  micCapsule: { backgroundColor: '#FFFFFF', position: 'absolute' },
+  micCradle: { borderTopWidth: 0, borderColor: '#FFFFFF', position: 'absolute' },
+  micStand: { backgroundColor: '#FFFFFF', position: 'absolute', bottom: 0 },
   button: {
     alignItems: 'center',
     justifyContent: 'center',

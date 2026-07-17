@@ -1,8 +1,8 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState, useSyncExternalStore } from 'react';
 import type { Task, TaskCreatedPayload } from '@ai-life/shared';
-import { connectSocket, disconnectSocket } from '@/services/socket/socketService';
+import { connectSocket, disconnectSocket, getSocket } from '@/services/socket/socketService';
 import { useChatStore } from './chatStore';
-import { useTasksStore } from '@/features/tasks/tasksStore';
+import { upsertTaskInCache } from '@/features/tasks/useTasks';
 
 interface ChatStartPayload {
   conversationId: string;
@@ -10,17 +10,27 @@ interface ChatStartPayload {
   assistantMessageId: string;
 }
 
+function subscribeToConnection(onChange: () => void) {
+  const socket = getSocket();
+  socket.on('connect', onChange);
+  socket.on('disconnect', onChange);
+  return () => {
+    socket.off('connect', onChange);
+    socket.off('disconnect', onChange);
+  };
+}
+
 /** Wires the chat store to the Socket.io streaming events (same protocol as mobile). */
 export function useChat() {
-  const [connected, setConnected] = useState(false);
+  // Connection status is external state on the socket — read it via
+  // useSyncExternalStore instead of mirroring it into useState.
+  const connected = useSyncExternalStore(subscribeToConnection, () => getSocket().connected);
   const [taskToast, setTaskToast] = useState<Task | null>(null);
 
   useEffect(() => {
     const socket = connectSocket();
     const store = useChatStore.getState;
 
-    const onConnect = () => setConnected(true);
-    const onDisconnect = () => setConnected(false);
     const onStart = (p: ChatStartPayload) => {
       store().setConversationId(p.conversationId);
       store().startAssistant(p.assistantMessageId);
@@ -29,22 +39,17 @@ export function useChat() {
     const onDone = () => store().finishAssistant();
     const onError = (p: { code: string; message: string }) => store().setError(p.message);
     const onTaskCreated = (p: TaskCreatedPayload) => {
-      useTasksStore.getState().upsert(p.task);
+      upsertTaskInCache(p.task);
       setTaskToast(p.task);
     };
 
-    socket.on('connect', onConnect);
-    socket.on('disconnect', onDisconnect);
     socket.on('chat:start', onStart);
     socket.on('chat:token', onToken);
     socket.on('chat:done', onDone);
     socket.on('chat:error', onError);
     socket.on('task:created', onTaskCreated);
-    setConnected(socket.connected);
 
     return () => {
-      socket.off('connect', onConnect);
-      socket.off('disconnect', onDisconnect);
       socket.off('chat:start', onStart);
       socket.off('chat:token', onToken);
       socket.off('chat:done', onDone);

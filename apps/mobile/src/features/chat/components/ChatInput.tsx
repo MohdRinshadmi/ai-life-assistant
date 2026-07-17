@@ -8,7 +8,10 @@ import {
   Platform,
   TextInput as RNTextInput,
 } from 'react-native';
+import LinearGradient from 'react-native-linear-gradient';
+import Icon from 'react-native-vector-icons/Ionicons';
 import { useTheme } from '@hooks/useTheme';
+import { spacing } from '@theme';
 import { VoiceButton } from './VoiceButton';
 
 interface Props {
@@ -20,7 +23,14 @@ interface Props {
   isListening?: boolean;
   onVoicePressIn?: () => void;
   onVoicePressOut?: () => void;
+  // Spoken replies toggle (lives in the composer's left slot)
+  autoSpeak?: boolean;
+  isSpeaking?: boolean;
+  onToggleAutoSpeak?: () => void;
 }
+
+const GRADIENT_START = { x: 0, y: 0 };
+const GRADIENT_END = { x: 1, y: 1 };
 
 export function ChatInput({
   onSend,
@@ -30,6 +40,9 @@ export function ChatInput({
   isListening = false,
   onVoicePressIn,
   onVoicePressOut,
+  autoSpeak = false,
+  isSpeaking = false,
+  onToggleAutoSpeak,
 }: Props) {
   const { theme } = useTheme();
   const [text, setText] = useState('');
@@ -43,7 +56,8 @@ export function ChatInput({
     }
   }, [transcript]);
 
-  const canSend = text.trim().length > 0 && !isStreaming && !disabled;
+  const hasText = text.trim().length > 0;
+  const canSend = hasText && !isStreaming && !disabled;
 
   function handleSend() {
     const trimmed = text.trim();
@@ -53,14 +67,43 @@ export function ChatInput({
   }
 
   return (
-    <View style={[styles.container, { backgroundColor: theme.colors.bg, borderTopColor: theme.colors.border }]}>
-      <View style={[styles.inputWrapper, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }]}>
+    <View style={[styles.container, { backgroundColor: theme.colors.bg }]}>
+      <View
+        style={[
+          styles.pill,
+          { backgroundColor: theme.colors.surface, borderColor: theme.colors.border },
+          disabled && styles.pillDisabled,
+        ]}
+      >
+        {onToggleAutoSpeak && (
+          <TouchableOpacity
+            style={[styles.slotButton, autoSpeak && { backgroundColor: theme.colors.primary }]}
+            onPress={onToggleAutoSpeak}
+            activeOpacity={0.7}
+            accessibilityRole="button"
+            accessibilityLabel={autoSpeak ? 'Disable spoken replies' : 'Enable spoken replies'}
+            accessibilityState={{ selected: autoSpeak }}
+          >
+            <Icon
+              name={
+                autoSpeak
+                  ? isSpeaking
+                    ? 'volume-high'
+                    : 'volume-high-outline'
+                  : 'volume-mute-outline'
+              }
+              size={19}
+              color={autoSpeak ? '#FFFFFF' : theme.colors.subtle}
+            />
+          </TouchableOpacity>
+        )}
+
         <TextInput
           ref={inputRef}
           style={[styles.input, { color: theme.colors.text }]}
           value={text}
           onChangeText={setText}
-          placeholder="Message your AI assistant..."
+          placeholder="Ask anything"
           placeholderTextColor={theme.colors.subtle}
           multiline
           maxLength={4000}
@@ -69,93 +112,81 @@ export function ChatInput({
           editable={!disabled}
         />
 
-        {onVoicePressIn && (
-          <VoiceButton
-            isListening={isListening}
-            onPressIn={onVoicePressIn}
-            onPressOut={onVoicePressOut ?? (() => {})}
-            disabled={disabled || isStreaming}
-          />
+        {isStreaming || hasText ? (
+          <TouchableOpacity
+            onPress={handleSend}
+            disabled={!canSend}
+            activeOpacity={0.75}
+            accessibilityRole="button"
+            accessibilityLabel="Send message"
+          >
+            <LinearGradient
+              colors={theme.colors.gradients.primary}
+              start={GRADIENT_START}
+              end={GRADIENT_END}
+              style={styles.sendButton}
+            >
+              {isStreaming ? (
+                <ActivityIndicator size="small" color="#FFFFFF" />
+              ) : (
+                <Icon name="arrow-up" size={18} color="#FFFFFF" />
+              )}
+            </LinearGradient>
+          </TouchableOpacity>
+        ) : (
+          onVoicePressIn && (
+            <VoiceButton
+              isListening={isListening}
+              onPressIn={onVoicePressIn}
+              onPressOut={onVoicePressOut ?? (() => {})}
+              disabled={disabled || isStreaming}
+            />
+          )
         )}
-
-        <TouchableOpacity
-          style={[
-            styles.sendButton,
-            { backgroundColor: canSend ? theme.colors.primary : theme.colors.border },
-          ]}
-          onPress={handleSend}
-          disabled={!canSend}
-          activeOpacity={0.75}
-        >
-          {isStreaming ? (
-            <ActivityIndicator size="small" color="#FFFFFF" />
-          ) : (
-            <SendIcon />
-          )}
-        </TouchableOpacity>
       </View>
-    </View>
-  );
-}
-
-function SendIcon() {
-  return (
-    <View style={styles.sendIcon}>
-      <View style={styles.sendArrow} />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    paddingBottom: Platform.OS === 'ios' ? 10 : 10,
-    borderTopWidth: StyleSheet.hairlineWidth,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
   },
-  inputWrapper: {
+  pill: {
     flexDirection: 'row',
     alignItems: 'flex-end',
-    borderRadius: 24,
+    borderRadius: 26,
     borderWidth: 1,
-    paddingLeft: 16,
-    paddingRight: 6,
-    paddingVertical: 6,
-    minHeight: 48,
+    minHeight: 52,
+    paddingHorizontal: spacing.xs,
+    paddingVertical: spacing.xs,
+  },
+  pillDisabled: {
+    opacity: 0.5,
+  },
+  slotButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255,255,255,0.04)',
   },
   input: {
     flex: 1,
-    fontSize: 15,
-    lineHeight: 21,
+    fontSize: 16,
+    lineHeight: 22,
     maxHeight: 120,
-    paddingTop: Platform.OS === 'ios' ? 4 : 2,
-    paddingBottom: Platform.OS === 'ios' ? 4 : 2,
+    paddingHorizontal: spacing.md,
+    paddingTop: Platform.OS === 'ios' ? 9 : 7,
+    paddingBottom: Platform.OS === 'ios' ? 9 : 7,
   },
   sendButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     justifyContent: 'center',
     alignItems: 'center',
-    marginLeft: 8,
-    marginBottom: 2,
-  },
-  sendIcon: {
-    width: 14,
-    height: 14,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  sendArrow: {
-    width: 0,
-    height: 0,
-    borderStyle: 'solid',
-    borderLeftWidth: 5,
-    borderRightWidth: 5,
-    borderBottomWidth: 10,
-    borderLeftColor: 'transparent',
-    borderRightColor: 'transparent',
-    borderBottomColor: '#FFFFFF',
-    marginLeft: 2,
   },
 });

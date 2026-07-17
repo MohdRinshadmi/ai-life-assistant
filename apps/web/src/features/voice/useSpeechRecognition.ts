@@ -29,7 +29,9 @@ export function useSpeechRecognition(onFinal: (transcript: string) => void) {
   const [transcript, setTranscript] = useState('');
   const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
   const onFinalRef = useRef(onFinal);
-  onFinalRef.current = onFinal;
+  useEffect(() => {
+    onFinalRef.current = onFinal;
+  });
 
   const supported = getRecognitionCtor() !== null;
 

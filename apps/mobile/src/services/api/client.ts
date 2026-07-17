@@ -1,6 +1,7 @@
 import axios, { AxiosInstance, InternalAxiosRequestConfig } from 'axios';
 import { useAuthStore } from '@stores/authStore';
 import { env } from '@config';
+import { logger } from '@utils/logger';
 
 /**
  * API Client — Axios instance with interceptors
@@ -38,9 +39,7 @@ apiClient.interceptors.request.use(
       config.headers.Authorization = `Bearer ${token}`;
     }
 
-    if (__DEV__) {
-      console.log(`🌐 ${config.method?.toUpperCase()} ${config.url}`);
-    }
+    logger.debug(`${config.method?.toUpperCase()} ${config.url}`);
 
     return config;
   },

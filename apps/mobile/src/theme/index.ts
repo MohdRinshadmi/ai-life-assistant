@@ -1,4 +1,4 @@
-import { colors, ColorScheme } from './colors';
+import { colors } from './colors';
 import { typography, textStyles } from './typography';
 import { spacing, borderRadius, shadows, layout } from './spacing';
 

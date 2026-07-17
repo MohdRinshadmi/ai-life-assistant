@@ -82,7 +82,7 @@ export function useChat({
       .getMessages(initialConversationId)
       .then((history) => {
         if (cancelled) return;
-        setMessages(history.map(({ tokenCount, ...m }) => m));
+        setMessages(history.map(({ tokenCount: _tokenCount, ...m }) => m));
       })
       .catch(() => {
         if (cancelled) return;
@@ -125,7 +125,7 @@ export function useChat({
     // → this effect early-returns, so there's no reconnect storm.
     const onConnectError = () => {
       setIsConnected(false);
-      void apiClient.get('/auth/me').catch(() => {});
+      apiClient.get('/auth/me').catch(() => {});
     };
 
     const onChatStart = (payload: {

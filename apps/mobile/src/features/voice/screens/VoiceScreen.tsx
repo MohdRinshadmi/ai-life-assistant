@@ -7,14 +7,12 @@ import {
   ScrollView,
   ActivityIndicator,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import LinearGradient from 'react-native-linear-gradient';
 import Tts from 'react-native-tts';
 
 import { useTheme } from '@hooks/useTheme';
 import { useSpeechTranscription } from '@hooks/useSpeechTranscription';
-import { MicOrb } from '@components/ui/MicOrb';
-import { GlassCard } from '@components/ui/GlassCard';
+import { GlassCard, MicOrb, PillButton, ScreenContainer } from '@components/ui';
+import { spacing } from '@theme';
 
 import { useVoiceStore } from '../stores/voiceStore';
 
@@ -75,17 +73,19 @@ export function VoiceScreen({ onComplete, speakFeedback = false }: VoiceScreenPr
     if (!cue) lastSpoken.current = null;
   }, [speakFeedback, state]);
 
+  // `start`/`stop` resolve internally (failures land in the hook's `error`
+  // state), so fire-and-forget calls are safe here.
   const handleMicPress = useCallback(() => {
     if (isListening) {
-      void stop();
+      stop();
     } else {
-      void start();
+      start();
     }
   }, [isListening, start, stop]);
 
   const handleDone = useCallback(() => {
     if (isListening) {
-      void stop();
+      stop();
     }
     if (hasTranscript) {
       setLastTranscript(trimmed);
@@ -119,131 +119,116 @@ export function VoiceScreen({ onComplete, speakFeedback = false }: VoiceScreenPr
   }, [error]);
 
   return (
-    <View style={styles.root}>
-      <LinearGradient
-        colors={theme.colors.gradients.backdrop as unknown as string[]}
-        locations={[0, 0.5, 1]}
-        style={StyleSheet.absoluteFill}
-      />
+    <ScreenContainer style={styles.content}>
+      <View style={styles.header}>
+        <Text style={[styles.title, { color: theme.colors.heading }]}>Voice Command</Text>
+        <Text style={[styles.subtitle, { color: theme.colors.subtle }]}>
+          Speak naturally — create tasks, capture notes, or ask anything.
+        </Text>
+      </View>
 
-      <SafeAreaView style={styles.flex} edges={['top']}>
-        <View style={styles.header}>
-          <Text style={[styles.title, { color: theme.colors.heading }]}>Voice Command</Text>
-          <Text style={[styles.subtitle, { color: theme.colors.subtle }]}>
-            Speak naturally — create tasks, capture notes, or ask anything.
-          </Text>
-        </View>
-
-        {/* Centerpiece mic */}
-        <View style={styles.orbZone}>
-          <MicOrb size={108} active={isListening} onPress={handleMicPress} />
-          <View style={styles.statusRow}>
-            {isBusy && (
-              <ActivityIndicator
-                size="small"
-                color={theme.colors.accent}
-                style={styles.statusSpinner}
-              />
-            )}
-            <Text
-              style={[
-                styles.statusText,
-                { color: isListening ? theme.colors.heading : theme.colors.subtle },
-              ]}
-            >
-              {status}
-            </Text>
-          </View>
-        </View>
-
-        {/* Transcript / error / empty panel */}
-        <View style={styles.panelZone}>
-          <GlassCard borderRadius={20} style={styles.panelCard}>
-            {errorMessage ? (
-              <View style={styles.panelInner}>
-                <Text style={[styles.errorTitle, { color: theme.colors.accent }]}>
-                  Can’t listen right now
-                </Text>
-                <Text style={[styles.errorBody, { color: theme.colors.text }]}>
-                  {errorMessage}
-                </Text>
-              </View>
-            ) : hasTranscript ? (
-              <ScrollView
-                contentContainerStyle={styles.panelInner}
-                showsVerticalScrollIndicator={false}
-              >
-                <Text style={[styles.transcriptLabel, { color: theme.colors.subtle }]}>
-                  {isListening ? 'Hearing…' : 'You said'}
-                </Text>
-                <Text style={[styles.transcriptText, { color: theme.colors.text }]}>
-                  {trimmed}
-                </Text>
-              </ScrollView>
-            ) : (
-              <View style={[styles.panelInner, styles.panelCenter]}>
-                <Text style={[styles.placeholderText, { color: theme.colors.muted }]}>
-                  {isListening
-                    ? 'Listening for your command…'
-                    : 'Your words will appear here.'}
-                </Text>
-              </View>
-            )}
-          </GlassCard>
-        </View>
-
-        {/* Actions */}
-        <View style={styles.actions}>
-          <TouchableOpacity
-            activeOpacity={0.7}
-            onPress={handleClear}
-            disabled={!hasTranscript || isListening}
+      {/* Centerpiece mic */}
+      <View style={styles.orbZone}>
+        <MicOrb size={108} active={isListening} onPress={handleMicPress} />
+        <View style={styles.statusRow}>
+          {isBusy && (
+            <ActivityIndicator
+              size="small"
+              color={theme.colors.accent}
+              style={styles.statusSpinner}
+            />
+          )}
+          <Text
             style={[
-              styles.secondaryBtn,
-              { borderColor: theme.colors.border },
-              (!hasTranscript || isListening) && styles.disabled,
+              styles.statusText,
+              { color: isListening ? theme.colors.heading : theme.colors.subtle },
             ]}
           >
-            <Text style={[styles.secondaryText, { color: theme.colors.subtle }]}>Clear</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            activeOpacity={0.9}
-            onPress={handleDone}
-            disabled={!hasTranscript}
-            style={[styles.doneShadow, !hasTranscript && styles.disabled]}
-          >
-            <LinearGradient
-              colors={theme.colors.gradients.primary as unknown as string[]}
-              start={{ x: 0, y: 0.5 }}
-              end={{ x: 1, y: 0.5 }}
-              style={styles.doneBtn}
-            >
-              <Text style={styles.doneText}>{isListening ? 'Stop & Use' : 'Done'}</Text>
-            </LinearGradient>
-          </TouchableOpacity>
+            {status}
+          </Text>
         </View>
-      </SafeAreaView>
-    </View>
+      </View>
+
+      {/* Transcript / error / empty panel */}
+      <View style={styles.panelZone}>
+        <GlassCard borderRadius={20} style={styles.panelCard}>
+          {errorMessage ? (
+            <View style={styles.panelInner}>
+              <Text style={[styles.errorTitle, { color: theme.colors.accent }]}>
+                Can’t listen right now
+              </Text>
+              <Text style={[styles.errorBody, { color: theme.colors.text }]}>
+                {errorMessage}
+              </Text>
+            </View>
+          ) : hasTranscript ? (
+            <ScrollView
+              contentContainerStyle={styles.panelInner}
+              showsVerticalScrollIndicator={false}
+            >
+              <Text style={[styles.transcriptLabel, { color: theme.colors.subtle }]}>
+                {isListening ? 'Hearing…' : 'You said'}
+              </Text>
+              <Text style={[styles.transcriptText, { color: theme.colors.text }]}>
+                {trimmed}
+              </Text>
+            </ScrollView>
+          ) : (
+            <View style={[styles.panelInner, styles.panelCenter]}>
+              <Text style={[styles.placeholderText, { color: theme.colors.muted }]}>
+                {isListening
+                  ? 'Listening for your command…'
+                  : 'Your words will appear here.'}
+              </Text>
+            </View>
+          )}
+        </GlassCard>
+      </View>
+
+      {/* Actions */}
+      <View style={styles.actions}>
+        <TouchableOpacity
+          activeOpacity={0.7}
+          onPress={handleClear}
+          disabled={!hasTranscript || isListening}
+          accessibilityRole="button"
+          accessibilityLabel="Clear transcript"
+          accessibilityState={{ disabled: !hasTranscript || isListening }}
+          style={[
+            styles.secondaryBtn,
+            { borderColor: theme.colors.border },
+            (!hasTranscript || isListening) && styles.disabled,
+          ]}
+        >
+          <Text style={[styles.secondaryText, { color: theme.colors.subtle }]}>Clear</Text>
+        </TouchableOpacity>
+
+        <PillButton
+          title={isListening ? 'Stop & Use' : 'Done'}
+          onPress={handleDone}
+          disabled={!hasTranscript}
+          style={styles.doneBtn}
+        />
+      </View>
+    </ScreenContainer>
   );
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#000000' },
-  flex: { flex: 1, paddingHorizontal: 20 },
+  content: { paddingHorizontal: spacing.lg },
 
-  header: { marginTop: 8, gap: 8 },
+  header: { marginTop: spacing.sm, gap: spacing.sm },
   title: { fontSize: 26, fontWeight: '700' },
   subtitle: { fontSize: 13, lineHeight: 19 },
 
-  orbZone: { alignItems: 'center', justifyContent: 'center', marginTop: 12 },
-  statusRow: { flexDirection: 'row', alignItems: 'center', marginTop: 4 },
-  statusSpinner: { marginRight: 8 },
+  orbZone: { alignItems: 'center', justifyContent: 'center', marginTop: spacing.md },
+  statusRow: { flexDirection: 'row', alignItems: 'center', marginTop: spacing.xs },
+  statusSpinner: { marginRight: spacing.sm },
   statusText: { fontSize: 15, fontWeight: '500' },
 
-  panelZone: { flex: 1, marginTop: 4, marginBottom: 16 },
+  panelZone: { flex: 1, marginTop: spacing.xs, marginBottom: spacing.base },
   panelCard: { flex: 1 },
-  panelInner: { padding: 4, flexGrow: 1 },
+  panelInner: { padding: spacing.xs, flexGrow: 1 },
   panelCenter: { alignItems: 'center', justifyContent: 'center' },
   placeholderText: { fontSize: 14, textAlign: 'center' },
 
@@ -252,7 +237,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     textTransform: 'uppercase',
     letterSpacing: 0.6,
-    marginBottom: 8,
+    marginBottom: spacing.sm,
   },
   transcriptText: { fontSize: 19, lineHeight: 27, fontWeight: '500' },
 
@@ -262,8 +247,8 @@ const styles = StyleSheet.create({
   actions: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
-    paddingBottom: 24,
+    gap: spacing.md,
+    paddingBottom: spacing.xl,
   },
   secondaryBtn: {
     paddingHorizontal: 22,
@@ -274,22 +259,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   secondaryText: { fontSize: 15, fontWeight: '500' },
-
-  doneShadow: {
-    flex: 1,
-    shadowColor: '#8B00FF',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.5,
-    shadowRadius: 18,
-    elevation: 10,
-  },
-  doneBtn: {
-    height: 52,
-    borderRadius: 26,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  doneText: { color: '#FFFFFF', fontSize: 16, fontWeight: '600' },
+  doneBtn: { flex: 1 },
 
   disabled: { opacity: 0.4 },
 });

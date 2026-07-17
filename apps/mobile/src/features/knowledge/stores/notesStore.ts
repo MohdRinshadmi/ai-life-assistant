@@ -54,8 +54,9 @@ export const useNotesStore = create<NotesState>((set, get) => ({
 
   setQuery: (query) => {
     set({ query });
-    // Re-run the search/list for the new query.
-    void get().load();
+    // Re-run the search/list for the new query. `load` resolves internally
+    // (errors land in store state), so fire-and-forget is safe here.
+    get().load();
   },
 
   create: async (payload) => {

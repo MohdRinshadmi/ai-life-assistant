@@ -15,7 +15,8 @@ export type IconName =
   | 'trash'
   | 'logout'
   | 'volume-on'
-  | 'volume-off';
+  | 'volume-off'
+  | 'arrow-right';
 
 const PATHS: Record<IconName, JSX.Element> = {
   home: (
@@ -70,6 +71,7 @@ const PATHS: Record<IconName, JSX.Element> = {
   'volume-off': (
     <path d="M11 5 6 9H2v6h4l5 4V5ZM22 9l-6 6M16 9l6 6" />
   ),
+  'arrow-right': <path d="M5 12h14M13 6l6 6-6 6" />,
 };
 
 interface IconProps extends SVGProps<SVGSVGElement> {
